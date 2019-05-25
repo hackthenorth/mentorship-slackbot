@@ -1,0 +1,24 @@
+{
+  "name": "@hackthenorth/mentorship-slackbot",
+  "version": "1.0.0",
+  "description": "## General overview",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hackathon/mentorship-slackbot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hackathon/mentorship-slackbot/issues"
+  },
+  "homepage": "https://github.com/hackathon/mentorship-slackbot#readme",
+  "devDependencies": {},
+  "dependencies": {
+    "@slack/events-api": "^2.2.0",
+    "@slack/web-api": "^5.0.1"
+  }
+}
