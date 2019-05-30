@@ -33,6 +33,7 @@ const messageHandler = (event) => {
           type: "actions",
           elements: [
             {
+              action_id: "need_mentor",
               type: "button",
               text: {
                 type: "plain_text",

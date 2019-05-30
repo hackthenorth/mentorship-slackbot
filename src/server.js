@@ -1,23 +1,19 @@
 const http = require('http');
-const express = require('express');
 const bodyParser = require('body-parser');
+const express = require('express');
 
 const port = process.env.PORT || 3000;
 
-const { events } = require('./clients');
+const { events, interactions } = require('./clients');
 
 const app = express();
 
 // Plug the event adapter into the express app as middleware
 app.use('/slack/events', events.expressMiddleware());
 
-// route for interactive components
-app.post('/slack/actions', (req, res) => {
-  res.sendStatus(200);
-  console.log("got action");
-  console.log(req.body);
-  // TODO: Add user to requests list
-});
+// Plug the interactions adapter into the express app as middleware
+require('./events/interactions').bootstrap(interactions);
+app.use('/slack/actions', interactions.expressMiddleware());
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
