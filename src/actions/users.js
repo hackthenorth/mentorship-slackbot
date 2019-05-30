@@ -4,7 +4,7 @@ const { welcome } = require('./message');
 
 // tries to add a member to our index
 const tryAdd = (member) => {
-  if (member.name !== 'pei') return;
+  if (member.name !== 'pei' || member.name !== 'jason') return;
   welcome(member);
 }
 
