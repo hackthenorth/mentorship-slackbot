@@ -34,3 +34,4 @@ http.createServer(app).listen(port, () => {
 });
 
 require('./actions/users').rescan();
+require('./actions/channel').getMentorRequestChannelId();

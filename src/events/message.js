@@ -4,8 +4,7 @@ const { BOT_USERNAME } = require('../../config');
 
 const messageHandler = (event) => {
   // console.log(event);
-  console.log(`Received a message event: user ${event.user} in channel ${event.channel} says ${event.text}`);
-  
+  // console.log(`Received a message event: user ${event.user} in channel ${event.channel} says ${event.text}`);
   // temporary welcome message for testing
   if (!event.subtype) {
     web.chat.postMessage({ 
@@ -26,7 +25,7 @@ const messageHandler = (event) => {
           type: "section",
           text: {
             type: "plain_text",
-            text: Text.NEED_MENTOR()
+            text: Text.NEED_MENTOR
           }
         },
         {
@@ -37,7 +36,7 @@ const messageHandler = (event) => {
               type: "button",
               text: {
                 type: "plain_text",
-                text: Text.NEED_MENTOR_BUTTON()
+                text: Text.NEED_MENTOR_BUTTON
               },
               value: "needMentor"
             }

@@ -5,8 +5,8 @@ module.exports = {
 I’m Mentorship Bot, here to help you
 find a mentor at any time during the
 event.`,
-  NEED_MENTOR: () => `Need a mentor? Simply click the button below.`,
-  NEED_MENTOR_BUTTON: () => `I need a mentor`,
-  EXPLAIN_PROBLEM: () => `I'm here to help! Please explain your problem to me in 2-3 sentences`,
-  LOCATION: () => `Got it! Where can a mentor find you?`
+  NEED_MENTOR: "Need a mentor? Simply click the button below.",
+  NEED_MENTOR_BUTTON: "I need a mentor",
+  REQUEST_CONFIRM: "Got it - I have passed on your request to the mentors",
+  CANCEL_REQUEST_BUTTON: "Cancel Reqeust"
 };
