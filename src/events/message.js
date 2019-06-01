@@ -3,49 +3,53 @@ const Text = require('../text');
 const { BOT_USERNAME } = require('../../config');
 
 const messageHandler = (event) => {
-  // console.log(event);
+  console.log(event);
   // console.log(`Received a message event: user ${event.user} in channel ${event.channel} says ${event.text}`);
   // temporary welcome message for testing
-  if (!event.subtype) {
-    web.chat.postMessage({ 
-      channel: event.channel,
-      text: {
-        type: "plain_text",
-        text: Text.WELCOME()
-      },
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "plain_text",
-            text: Text.WELCOME()
+  if (event.channel_type === 'group') { // private channel
+
+  } else if (event.channel_type === 'im') { // DM
+    if (!event.subtype) {
+      web.chat.postMessage({ 
+        channel: event.channel,
+        text: {
+          type: "plain_text",
+          text: Text.WELCOME()
+        },
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "plain_text",
+              text: Text.WELCOME()
+            },
           },
-        },
-        {
-          type: "section",
-          text: {
-            type: "plain_text",
-            text: Text.NEED_MENTOR
-          }
-        },
-        {
-          type: "actions",
-          elements: [
-            {
-              action_id: "need_mentor",
-              type: "button",
-              text: {
-                type: "plain_text",
-                text: Text.NEED_MENTOR_BUTTON
-              },
-              value: "needMentor"
+          {
+            type: "section",
+            text: {
+              type: "plain_text",
+              text: Text.NEED_MENTOR
             }
-          ]
-        }
-      ],
-      as_user: false, 
-      username: BOT_USERNAME })
-        .catch(console.error);
+          },
+          {
+            type: "actions",
+            elements: [
+              {
+                action_id: "need_mentor",
+                type: "button",
+                text: {
+                  type: "plain_text",
+                  text: Text.NEED_MENTOR_BUTTON
+                },
+                value: "needMentor"
+              }
+            ]
+          }
+        ],
+        as_user: false, 
+        username: BOT_USERNAME })
+          .catch(console.error);
+    }
   }
 };
 

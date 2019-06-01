@@ -23,6 +23,7 @@ events.on('message', (event) => require('./events/message')(event));
 // events.on('app_mention', require('./events/message'));
 // events.on('message.im', require('./events/message'));
 events.on('team_join', require('./events/teamJoin'));
+// events.on('message.group', console.log);
 
 // Handle errors (see `errorCodes` export)
 events.on('error', console.error);

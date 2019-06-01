@@ -4,6 +4,56 @@ const { BOT_USERNAME } = require('../../config');
 
 const Text = require('../text');
 
+const postMentorRequest = (channel, user, submission) => {
+  web.chat.postMessage({
+    channel,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "plain_text",
+          text: Text.MENTOR_REQUEST_TITLE(user.name)
+        }
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: Text.MENTOR_REQUEST_DETAILS(submission)
+        }
+      },
+      {
+        type: "actions",
+        elements: [
+          {
+            action_id: "claim_request",
+            type: "button",
+            text: {
+              type: "plain_text",
+              text: Text.MENTOR_REQUEST_CONFIRM
+            },
+            style: "primary",
+            value: "claim"
+          },
+          {
+            action_id: "delete_request",
+            type: "button",
+            text: {
+              type: "plain_text",
+              emoji: true,
+              text: Text.MENTOR_REQUEST_DELETE
+            },
+            style: "danger",
+            value: "delete"
+          }
+        ]
+      }
+    ],
+    as_user: false, 
+    username: BOT_USERNAME 
+  }).catch(console.error);
+};
+
 const openMentorRequest = (trigger_id) => {
   web.dialog.open({
     trigger_id,
@@ -16,7 +66,7 @@ const openMentorRequest = (trigger_id) => {
         {
           "type": "text",
           "label": "Your Problem",
-          "name": "problem"
+          "name": "description"
         },
         {
           "type": "text",
@@ -25,13 +75,12 @@ const openMentorRequest = (trigger_id) => {
         }
       ]
     }
-  })
-    .catch(console.error);
+  }).catch(console.error);
 };
 
 const confirmMentorRequest = (channel) => {
   web.chat.postMessage({ 
-    channel: channel,
+    channel,
     text: {
       type: "plain_text",
       text: Text.REQUEST_CONFIRM
@@ -103,4 +152,4 @@ const welcome = (member) => {
       .catch(console.error);
 }
 
-module.exports = { welcome, openMentorRequest, confirmMentorRequest };
+module.exports = { welcome, openMentorRequest, confirmMentorRequest, postMentorRequest };

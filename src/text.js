@@ -8,5 +8,10 @@ event.`,
   NEED_MENTOR: "Need a mentor? Simply click the button below.",
   NEED_MENTOR_BUTTON: "I need a mentor",
   REQUEST_CONFIRM: "Got it - I have passed on your request to the mentors",
-  CANCEL_REQUEST_BUTTON: "Cancel Reqeust"
+  CANCEL_REQUEST_BUTTON: "Cancel Request",
+  MENTOR_REQUEST_TITLE: (user) => `Mentorship request from @${user}`,
+  MENTOR_REQUEST_DETAILS: ({ description, location }) => 
+    `*Description:*\n${description}\n*Location:*\n${location}`,
+  MENTOR_REQUEST_CONFIRM: "Claim",
+  MENTOR_REQUEST_DELETE: "Delete"
 };
