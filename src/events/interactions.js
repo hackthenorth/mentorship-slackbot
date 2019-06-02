@@ -1,5 +1,5 @@
 const Text = require('../text');
-const { openMentorRequest, confirmMentorRequest, postMentorRequest } = require('../actions/message');
+const { openMentorRequestDialog, confirmMentorRequest, postMentorRequest } = require('../actions/message');
 const { getMentorRequestChannelId } = require('../actions/channel');
 
 const handleNeedMentor = (payload, respond) => {
@@ -7,7 +7,7 @@ const handleNeedMentor = (payload, respond) => {
   // initialize request for user
 
   // send problem prompt text
-  openMentorRequest(payload.trigger_id);
+  openMentorRequestDialog(payload.trigger_id);
 };
 
 const handleMentorRequest = async (payload, respond) => {

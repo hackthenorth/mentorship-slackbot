@@ -4,6 +4,31 @@ const { BOT_USERNAME } = require('../../config');
 
 const Text = require('../text');
 
+const postMessageToThread = (channel, thread_ts, message) => {
+  web.chat.postMessage({
+    channel,
+    thread_ts,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "plain_text",
+          text: Text.MENTEE_MESSAGE_NOTIF
+        }
+      },
+      {
+        type: "section",
+        text: {
+          type: "plain_text",
+          text: message
+        }
+      }
+    ],
+    as_user: false, 
+    username: BOT_USERNAME 
+  }).catch(console.error);
+};
+
 const postMentorRequest = (channel, user, submission) => {
   web.chat.postMessage({
     channel,
@@ -54,7 +79,7 @@ const postMentorRequest = (channel, user, submission) => {
   }).catch(console.error);
 };
 
-const openMentorRequest = (trigger_id) => {
+const openMentorRequestDialog = (trigger_id) => {
   web.dialog.open({
     trigger_id,
     dialog: {
@@ -152,4 +177,10 @@ const welcome = (member) => {
       .catch(console.error);
 }
 
-module.exports = { welcome, openMentorRequest, confirmMentorRequest, postMentorRequest };
+module.exports = {
+  welcome,
+  openMentorRequestDialog,
+  confirmMentorRequest,
+  postMentorRequest,
+  postMessageToThread
+};

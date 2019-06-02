@@ -13,5 +13,7 @@ event.`,
   MENTOR_REQUEST_DETAILS: ({ description, location }) => 
     `*Description:*\n${description}\n*Location:*\n${location}`,
   MENTOR_REQUEST_CONFIRM: "Claim",
-  MENTOR_REQUEST_DELETE: "Delete"
+  MENTOR_REQUEST_DELETE: "Delete",
+  MENTOR_MESSAGE_NOTIF: "A mentor sent you a message: ",
+  MENTEE_MESSAGE_NOTIF: "The mentee sent you a message: "
 };
