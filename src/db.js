@@ -12,8 +12,16 @@ const getChannelId = () => db.get('channel_id').value();
 
 const setChannelId = (id) => db.set('channel_id', id).write();
 
-const getThreads = () => db.get('threads').value();
+const setChannelWithTimestamp = (channel, ts) => {
+  // one thread per user, need a better way to insert unique objects
+  if (!getTimestampByChannel(channel)) {
+    console.log("pushing new thread");
+    db.get('threads').push({ channel, ts }).write();
+  }
+};
 
-const addThread = (ts) => db.get('threads').push(ts).write();
+const getTimestampByChannel = (channel) => db.get('threads').find({ channel }).value();
 
-module.exports = { getChannelId, setChannelId, getThreads, addThread };
+const getChannelByTimestamp = (ts) => db.get('threads').find({ ts }).value();
+
+module.exports = { getChannelId, setChannelId, setChannelWithTimestamp, getChannelByTimestamp, getTimestampByChannel };

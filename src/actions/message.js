@@ -4,7 +4,30 @@ const { BOT_USERNAME } = require('../../config');
 
 const Text = require('../text');
 
-const postMessageToThread = (channel, thread_ts, message) => {
+const postThreadMessageToDM = (channel, text) => {
+  web.chat.postMessage({
+    channel,
+    text,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "plain_text",
+          text: Text.MENTOR_MESSAGE_NOTIF
+        }
+      },
+      {
+        type: "section",
+        text: {
+          type: "plain_text",
+          text
+        }
+      }
+    ]
+  });
+}
+
+const postDMToThread = (channel, thread_ts, message) => {
   web.chat.postMessage({
     channel,
     thread_ts,
@@ -29,12 +52,13 @@ const postMessageToThread = (channel, thread_ts, message) => {
   }).catch(console.error);
 };
 
-const postMentorRequest = (channel, user, submission) => {
+const postMentorRequest = (privateChannel, DMChannel, user, submission) => {
   web.chat.postMessage({
-    channel,
+    channel: privateChannel,
     blocks: [
       {
         type: "section",
+        block_id: "mentor_request",
         text: {
           type: "plain_text",
           text: Text.MENTOR_REQUEST_TITLE(user.name)
@@ -42,6 +66,7 @@ const postMentorRequest = (channel, user, submission) => {
       },
       {
         type: "section",
+        block_id: DMChannel,
         text: {
           type: "mrkdwn",
           text: Text.MENTOR_REQUEST_DETAILS(submission)
@@ -182,5 +207,6 @@ module.exports = {
   openMentorRequestDialog,
   confirmMentorRequest,
   postMentorRequest,
-  postMessageToThread
+  postDMToThread,
+  postThreadMessageToDM
 };

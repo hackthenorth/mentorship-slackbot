@@ -3,9 +3,7 @@ const { openMentorRequestDialog, confirmMentorRequest, postMentorRequest } = req
 const { getMentorRequestChannelId } = require('../actions/channel');
 
 const handleNeedMentor = (payload, respond) => {
-  console.log(payload.trigger_id);
   // initialize request for user
-
   // send problem prompt text
   openMentorRequestDialog(payload.trigger_id);
 };
@@ -20,7 +18,7 @@ const handleMentorRequest = async (payload, respond) => {
   // send request to private channel
   const mentorChannelId = getMentorRequestChannelId();
   if (mentorChannelId) {
-    postMentorRequest(mentorChannelId, user, submission);
+    postMentorRequest(mentorChannelId, channel.id, user, submission);
   }
 
   // respond with confirmation

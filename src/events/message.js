@@ -1,34 +1,41 @@
 const { web } = require('../clients');
 const Text = require('../text');
 const { BOT_USERNAME } = require('../../config');
-const { getThreads, addThread } = require('../db');
+const { setChannelWithTimestamp, getChannelByTimestamp, getTimestampByChannel } = require('../db');
+const { postDMToThread, postThreadMessageToDM } = require('../actions/message');
+const { getMentorRequestChannelId } = require('../actions/channel');
 
 let welcomed = false;
 
-const messageHandler = ({ channel, channel_type, subtype, ts, thread_ts, text }) => {
-  console.log(event);
+const messageHandler = (event) => {
+  // console.log(event);
   // console.log(`Received a message event: user ${event.user} in channel ${event.channel} says ${event.text}`);
   
-  if (channel_type === 'group') { // private channel
-    // record timestamp so there's a reference for threads
-    const threads = getThreads();
-    console.log(threads);
-    if (threads.includes(ts)) {
-      console.log("includes ts");
+  if (event.channel_type === 'group') { // private channel messages
+    if (event.subtype === 'bot_message') {
+      if (event.blocks && event.blocks[0].block_id === 'mentor_request') {
+        // record timestamp and DM channel so there's a reference for threads
+        setChannelWithTimestamp(event.blocks[1].block_id, event.event_ts);
+      }
     } else {
-      addThreads(ts);
+      // send thread message to DM
+      const { channel } = getChannelByTimestamp(event.thread_ts);
+      if (channel) {
+        postThreadMessageToDM(channel, event.text);
+      }
     }
-
-  } else if (channel_type === 'im') { // DM
-    if (welcomed) {
-      postMessageToThread(channel, thread_ts, text);
+  } else if (event.channel_type === 'im') { // DM's
+    if (welcomed && !event.subtype) { // user messages
+      // if the user has a request, post DM's to the thread
+      const { ts } = getTimestampByChannel(event.channel);
+      if (ts) postDMToThread(getMentorRequestChannelId(), ts, event.text);
     }
 
     // temporary welcome message for testing
-    if (!subtype) {
+    if (!event.subtype && !welcomed) { // bot messages
       welcomed = true;
       web.chat.postMessage({ 
-        channel,
+        channel: event.channel,
         text: {
           type: "plain_text",
           text: Text.WELCOME()
