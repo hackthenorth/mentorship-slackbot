@@ -1,8 +1,7 @@
-const { rescan } = require('../actions/users');
-const { welcome } = require('../actions/message');
+const { tryAdd } = require("../actions/users");
 
-const onTeamJoin = (event) => {
-  welcome(event.user);
+const onTeamJoin = event => {
+  tryAdd(event.user);
 };
 
 module.exports = onTeamJoin;

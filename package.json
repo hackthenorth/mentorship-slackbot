@@ -4,7 +4,8 @@
   "description": "## General overview",
   "main": "index.js",
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "serveo": "ssh -R test-mentorship:80:localhost:3000 serveo.net"
   },
   "repository": {
     "type": "git",
