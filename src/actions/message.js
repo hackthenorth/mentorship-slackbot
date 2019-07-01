@@ -292,8 +292,7 @@ const noUnderstand = channel => {
         {
           type: "section",
           text: { type: "mrkdwn", text: Text.NO_UNDERSTAND }
-        },
-        requestActionBlock
+        }
       ],
       as_user: true,
       username: BOT_USERNAME
