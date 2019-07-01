@@ -39,7 +39,7 @@ const handleMentorRequest = async payload => {
     postMentorRequest(mentorChannelId, channel.id, user, submission)
     .then(({ ts }) => {
       createSession(user.id, channel.id, ts, state);
-      confirmMentorRequest(channel.id, state);
+      confirmMentorRequest(channel.id, state, user.name);
     });
   }
 };

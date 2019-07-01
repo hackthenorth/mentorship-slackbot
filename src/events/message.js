@@ -1,12 +1,10 @@
-const { web } = require("../clients");
-const Text = require("../text");
-const { BOT_USERNAME } = require("../../config");
 const { getSession, getUserIdByThreadTs } = require("../db");
 const {
   postDMToThread,
   postThreadMessageToDM,
   welcome,
-  noSession
+  noSession,
+  noUnderstand
 } = require("../actions/message");
 const { getMentorRequestChannelId } = require("../actions/channel");
 
@@ -31,19 +29,22 @@ const messageHandler = event => {
     } else {
       // send thread message to DM
       const user = getUserIdByThreadTs(event.thread_ts);
+      const { channel, source_ts } = getSession(user);
       if (user) {
         postThreadMessageToDM(
           event.channel,
           event.ts,
-          getSession(user).channel,
-          event.text
+          channel,
+          source_ts,
+          event.text,
+          user
         );
       }
     }
   } else if (event.channel_type === "im") {
     // DM's
     const user = getSession(event.user);
-    if (!event.subtype && user != null && user.ts != null) {
+    if (!event.subtype && user != null && user.ts != null && user.source_ts === event.thread_ts) {
       // user messages
       // if the user has a request, post DM's to the thread
       postDMToThread(
@@ -55,7 +56,11 @@ const messageHandler = event => {
       );
     } else {
       if (user != null) {
-        noSession(event.channel);
+        if (user.ts != null) {
+          noUnderstand(event.channel);
+        } else {
+          noSession(event.channel);
+        }
       } else {
         welcome(event.user, event.channel);
       }

@@ -6,29 +6,29 @@ const { createSession } = require("../db");
 
 const Text = require("../text");
 
-const postThreadMessageToDM = (source_channel, source_ts, channel, text) => {
+const postThreadMessageToDM = (
+  source_channel,
+  source_ts,
+  channel,
+  thread_ts,
+  text,
+  username
+) => {
   web.chat
     .postMessage({
       channel,
       text,
+      thread_ts,
       blocks: [
-        {
-          type: "context",
-          elements: [
-            {
-              type: "plain_text",
-              text: Text.MENTOR_MESSAGE_NOTIF
-            }
-          ]
-        },
         {
           type: "section",
           text: {
-            type: "plain_text",
-            text
+            type: "mrkdwn",
+            text: `<@${username}>: ` + text
           }
         }
-      ]
+      ],
+      as_user: true,
     })
     .then(() => {
       web.reactions.add({
@@ -52,23 +52,14 @@ const postDMToThread = (
       thread_ts,
       blocks: [
         {
-          type: "context",
-          elements: [
-            {
-              type: "plain_text",
-              text: Text.MENTEE_MESSAGE_NOTIF
-            }
-          ]
-        },
-        {
           type: "section",
           text: {
-            type: "plain_text",
+            type: "mrkdwn",
             text: message
           }
         }
       ],
-      as_user: false,
+      as_user: true,
       username: BOT_USERNAME
     })
     .then(() => {
@@ -92,7 +83,7 @@ const postMentorRequest = (privateChannel, DMChannel, user, submission) => {
         block_id: "mentor_request",
         elements: [
           {
-            type: "plain_text",
+            type: "mrkdwn",
             text: Text.MENTOR_REQUEST_TITLE(user.name, submission)
           }
         ]
@@ -130,9 +121,19 @@ const postMentorRequest = (privateChannel, DMChannel, user, submission) => {
             value: "delete"
           }
         ]
+      },
+      {
+        type: "context",
+        block_id: "mentor_request_footer",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: Text.MENTOR_REQUEST_FOOTER
+          }
+        ]
       }
     ],
-    as_user: false,
+    as_user: true,
     username: BOT_USERNAME
   });
 };
@@ -164,7 +165,7 @@ const openMentorRequestDialog = (trigger_id, ts) => {
   });
 };
 
-const confirmMentorRequest = (channel, ts) => {
+const confirmMentorRequest = (channel, ts, username) => {
   web.chat.update({
     channel,
     ts,
@@ -173,7 +174,7 @@ const confirmMentorRequest = (channel, ts) => {
       {
         type: "section",
         text: {
-          type: "plain_text",
+          type: "mrkdwn",
           text: Text.REQUEST_CONFIRM
         }
       },
@@ -191,8 +192,32 @@ const confirmMentorRequest = (channel, ts) => {
         ]
       }
     ],
-    as_user: false,
+    as_user: true,
     username: BOT_USERNAME
+  });
+  web.chat.postMessage({
+    channel,
+    text: Text.MENTEE_MESSAGE_NOTIF(username),
+    thread_ts: ts,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: Text.MENTEE_MESSAGE_NOTIF(username)
+        }
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: Text.MENTEE_MESSAGE_NOTIF_CONTEXT
+          }
+        ]
+      }
+    ],
+    as_user: true,
   });
 };
 
@@ -220,20 +245,20 @@ const welcome = (userid, channel, name) => {
         {
           type: "section",
           text: {
-            type: "plain_text",
+            type: "mrkdwn",
             text: Text.WELCOME(name)
           }
         },
         {
           type: "section",
           text: {
-            type: "plain_text",
+            type: "mrkdwn",
             text: Text.NEED_MENTOR
           }
         },
         requestActionBlock
       ],
-      as_user: false,
+      as_user: true,
       username: BOT_USERNAME
     })
     .then(() => {
@@ -249,11 +274,28 @@ const noSession = channel => {
       blocks: [
         {
           type: "section",
-          text: { type: "plain_text", text: Text.NO_SESSION }
+          text: { type: "mrkdwn", text: Text.NO_SESSION }
         },
         requestActionBlock
       ],
-      as_user: false,
+      as_user: true,
+      username: BOT_USERNAME
+    })
+    .catch(console.error);
+};
+const noUnderstand = channel => {
+  web.chat
+    .postMessage({
+      channel: channel,
+      text: Text.NO_UNDERSTAND,
+      blocks: [
+        {
+          type: "section",
+          text: { type: "mrkdwn", text: Text.NO_UNDERSTAND }
+        },
+        requestActionBlock
+      ],
+      as_user: true,
       username: BOT_USERNAME
     })
     .catch(console.error);
@@ -267,13 +309,13 @@ const needMentor = channel => {
       {
         type: "section",
         text: {
-          type: "plain_text",
+          type: "mrkdwn",
           text: Text.NEED_MENTOR
         }
       },
       requestActionBlock
     ],
-    as_user: false,
+    as_user: true,
     username: BOT_USERNAME
   });
 };
@@ -289,11 +331,12 @@ const postSessionDeleted = (channel, ts) => {
         {
           type: "section",
           text: {
-            type: "plain_text",
+            type: "mrkdwn",
             text: Text.SESSION_DELETED
           }
         }
-      ]
+      ],
+      as_user: true,
     })
     .then(() => needMentor(channel));
 };
@@ -302,6 +345,7 @@ module.exports = {
   welcome,
   needMentor,
   noSession,
+  noUnderstand,
   openMentorRequestDialog,
   confirmMentorRequest,
   postMentorRequest,
