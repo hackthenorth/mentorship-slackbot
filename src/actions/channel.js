@@ -15,7 +15,6 @@ const getMentorRequestChannelId = () => {
       })
       .then(({ channels }) => {
         // assume bot is only added to the mentor_request channel
-        // console.log(channels[0].id);
         setChannelId(channels[0].id);
       });
   }

@@ -16,8 +16,6 @@ const messageHandler = event => {
     (event.previous_message != null && event.previous_message.bot_id != null)
   )
     return;
-  // console.log(event);
-  // console.log(`Received a message event: user ${event.user} in channel ${event.channel} says ${event.text}`);
 
   if (event.channel_type === "group") {
     // private channel messages

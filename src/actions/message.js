@@ -319,6 +319,38 @@ const needMentor = channel => {
   });
 };
 
+const postSessionClaimed = (channel, ts) => {
+  web.chat.update({
+    channel,
+    ts,
+    text: Text.SESSION_CLAIMED,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: Text.SESSION_CLAIMED
+        }
+      },
+      {
+        type: "actions",
+        elements: [
+          {
+            action_id: "cancel_request",
+            type: "button",
+            text: {
+              type: "plain_text",
+              text: Text.CANCEL_REQUEST_BUTTON
+            }
+          }
+        ]
+      }
+    ],
+    as_user: true,
+    username: BOT_USERNAME
+  });
+};
+
 const postSessionDeleted = (channel, ts) => {
   web.chat.delete({ channel, ts });
   web.chat
@@ -348,6 +380,7 @@ module.exports = {
   openMentorRequestDialog,
   confirmMentorRequest,
   postMentorRequest,
+  postSessionClaimed,
   postSessionDeleted,
   postDMToThread,
   postThreadMessageToDM

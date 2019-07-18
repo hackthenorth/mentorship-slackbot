@@ -20,5 +20,6 @@ event.`,
   MENTEE_MESSAGE_NOTIF: (username) => `Your request has been submitted @${username}!`,
   MENTEE_MESSAGE_NOTIF_CONTEXT: `Until you are matched, you may send a message to this thread to communicate with mentors. Similarly, I will forward any questions the mentors may have into this thread as well :)`,
   SESSION_ALREADY_ACTIVE: "You already have an active mentorship session",
+  SESSION_CLAIMED: 'Your request has been claimed by a mentor - a channel has been created for you to communicate with your mentor',
   SESSION_DELETED: "Your mentorship session was deleted by a mentor - if you believe this was a mistake, please make a new request or contact our mentorship lead @bonnie",
 };

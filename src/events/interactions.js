@@ -4,6 +4,7 @@ const {
   openMentorRequestDialog,
   confirmMentorRequest,
   postMentorRequest,
+  postSessionClaimed,
   postSessionDeleted,
   needMentor
 } = require("../actions/message");
@@ -27,8 +28,6 @@ const handleNeedMentor = (payload, respond) => {
 };
 
 const handleMentorRequest = async payload => {
-  console.log("GOT MENTOR REQUEST");
-  console.log(payload);
   const { user, channel, submission, state } = payload;
   // validate user and submission
   // save problem and location
@@ -56,12 +55,14 @@ const handleCancelRequest = ({user: {id}}, respond) => {
   // respond in private mentor channel
 };
 
-const handleClaimRequest = (payload, respond) => {};
+const handleClaimRequest = (payload, respond) => {
+  const userId = getUserIdByThreadTs(payload.message.ts);
+  const { channel, source_ts } = getSession(userId);
+  postSessionClaimed(channel, source_ts);
+};
 
 const handleDeleteRequest = (payload, respond) => {
-  console.log(payload.message.ts);
   const userId = getUserIdByThreadTs(payload.message.ts);
-  console.log(userId);
   const { channel, source_ts } = getSession(userId);
   web.chat.delete({ channel: getMentorRequestChannelId(), ts: payload.message.ts });
   postSessionDeleted(channel, source_ts);

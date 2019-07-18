@@ -15,7 +15,6 @@ const setChannelId = id => db.set("channel_id", id).write();
 
 const createSession = (user, channel, ts, source_ts) => {
   // one thread per user, need a better way to insert unique objects
-  console.log("pushing new thread", user, channel, ts, source_ts);
   db.get("sessions")
     .set(user, { channel, ts, source_ts })
     .write();
