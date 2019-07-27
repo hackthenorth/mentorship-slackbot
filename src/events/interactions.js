@@ -1,18 +1,19 @@
+const Moniker = require("moniker");
+
 const Text = require("../text");
 
-const {
-  openMentorRequestDialog,
-  confirmMentorRequest,
-  postMentorRequest,
-  postSessionClaimed,
-  postSessionDeleted,
-  needMentor
-} = require("../actions/message");
+const message = require("../actions/message");
 const { getMentorRequestChannelId } = require("../actions/channel");
 
-const { web } = require('../clients');
+const { web } = require("../clients");
 
-const { createSession, getSession, clearSession, getUserIdByThreadTs} = require("../db");
+const {
+  getSession,
+  clearSession,
+  getUserIdByThreadTs,
+  setGroup,
+  updateSession
+} = require("../db");
 
 const handleNeedMentor = (payload, respond) => {
   // check for existing session
@@ -23,49 +24,66 @@ const handleNeedMentor = (payload, respond) => {
     });
   } else {
     // send problem prompt text
-    openMentorRequestDialog(payload.trigger_id, payload.message.ts);
+    message.openMentorRequestDialog(payload.trigger_id, payload.message.ts);
   }
 };
 
-const handleMentorRequest = async payload => {
+const handleMentorRequest = payload => {
   const { user, channel, submission, state } = payload;
-  // validate user and submission
-  // save problem and location
-  // start request reminder timer
-  // send request to private channel
-  const mentorChannelId = getMentorRequestChannelId();
-  if (mentorChannelId) {
-    postMentorRequest(mentorChannelId, channel.id, user, submission)
-    .then(({ ts }) => {
-      createSession(user.id, channel.id, ts, state);
-      confirmMentorRequest(channel.id, state, user.name);
-    });
-  }
+  const session = updateSession(user.id, {
+    username: user.name,
+    channel: channel.id,
+    mentee_ts: state,
+    submission
+  });
+  message
+    .postMentorRequest(session)
+    .then(({ ts }) =>
+      message.confirmMentorRequest(updateSession(user.id, { ts }))
+    );
 };
 
-const handleCancelRequest = ({user: {id}}, respond) => {
+const handleCancelRequest = ({ user: { id } }, respond) => {
   respond({
     text: "Your request was canceled"
   });
   const { channel, ts } = getSession(id);
   web.chat.delete({ channel: getMentorRequestChannelId(), ts });
   clearSession(id);
-  needMentor(channel);
+  message.needMentor(channel);
 
   // respond in private mentor channel
 };
 
-const handleClaimRequest = (payload, respond) => {
+const handleClaimRequest = payload => {
   const userId = getUserIdByThreadTs(payload.message.ts);
-  const { channel, source_ts } = getSession(userId);
-  postSessionClaimed(channel, source_ts);
+  const session = updateSession(userId, { mentor: payload.user.id });
+
+  // create group, prevent dup channel names
+  const hash = Math.round(new Date().getTime() / 1000)
+    .toString()
+    .slice(-6);
+
+  web.conversations
+    .open({
+      users: [session.id, session.mentor].join(",")
+    })
+    .then(response => {
+      const groupId = response.channel.id;
+      message.sessionIntroduction(
+        updateSession(session.id, { group_id: groupId })
+      );
+    });
 };
 
-const handleDeleteRequest = (payload, respond) => {
-  const userId = getUserIdByThreadTs(payload.message.ts);
-  const { channel, source_ts } = getSession(userId);
-  web.chat.delete({ channel: getMentorRequestChannelId(), ts: payload.message.ts });
-  postSessionDeleted(channel, source_ts);
+const handleDeleteRequest = payload => {
+  const userId = payload.actions[0].value;
+  const session = getSession(userId);
+  web.chat.delete({
+    channel: getMentorRequestChannelId(),
+    ts: session.ts
+  });
+  message.postSessionDeleted(session);
   clearSession(userId);
   // respond in DM
 };

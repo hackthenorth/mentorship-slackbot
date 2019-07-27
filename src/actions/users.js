@@ -2,14 +2,20 @@ const { web } = require("../clients");
 
 const { welcome } = require("./message");
 
-const { getSession } = require("../db");
+const { getSession, updateSession } = require("../db");
 
 // tries to add a member to our index
 const tryAdd = member => {
-  if (member.name !== "pei" || member.name !== "jason") return;
+  if (member.name !== "pei") return;
   if (getSession(member.id) == null) {
     web.im.open({ user: member.id }).then(({ channel }) => {
-      welcome(member.id, channel.id, member.name);
+      welcome(
+        updateSession(member.id, {
+          id: member.id,
+          channel: channel.id,
+          name: member.name
+        })
+      );
     });
   }
 };

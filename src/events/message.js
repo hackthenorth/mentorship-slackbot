@@ -1,12 +1,5 @@
-const { getSession, getUserIdByThreadTs } = require("../db");
-const {
-  postDMToThread,
-  postThreadMessageToDM,
-  welcome,
-  noSession,
-  noUnderstand
-} = require("../actions/message");
-const { getMentorRequestChannelId } = require("../actions/channel");
+const db = require("../db");
+const message = require("../actions/message");
 
 const messageHandler = event => {
   // ignore bot messages
@@ -26,41 +19,33 @@ const messageHandler = event => {
       // }
     } else {
       // send thread message to DM
-      const user = getUserIdByThreadTs(event.thread_ts);
-      const { channel, source_ts } = getSession(user);
+      const user = db.getUserIdByThreadTs(event.thread_ts);
+      const session = db.getSession(user);
       if (user) {
-        postThreadMessageToDM(
-          event.channel,
-          event.ts,
-          channel,
-          source_ts,
-          event.text,
-          user
-        );
+        message.postThreadMessageToDM(session, event.ts, event.text);
       }
     }
   } else if (event.channel_type === "im") {
     // DM's
-    const user = getSession(event.user);
-    if (!event.subtype && user != null && user.ts != null && user.source_ts === event.thread_ts) {
+    const session = db.getSession(event.user);
+    if (
+      !event.subtype &&
+      session != null &&
+      session.ts != null &&
+      session.mentee_ts === event.thread_ts
+    ) {
       // user messages
       // if the user has a request, post DM's to the thread
-      postDMToThread(
-        event.channel,
-        event.ts,
-        getMentorRequestChannelId(),
-        user.ts,
-        event.text
-      );
+      message.postDMToThread(session, event.ts, event.text);
     } else {
-      if (user != null) {
-        if (user.ts != null) {
-          noUnderstand(event.channel);
+      if (session != null) {
+        if (session.ts != null) {
+          message.noUnderstand(session);
         } else {
-          noSession(event.channel);
+          message.noSession(session);
         }
       } else {
-        welcome(event.user, event.channel);
+        message.welcome(session);
       }
     }
   }

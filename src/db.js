@@ -13,27 +13,27 @@ const getChannelId = () => db.get("channel_id").value();
 
 const setChannelId = id => db.set("channel_id", id).write();
 
-const createSession = (user, channel, ts, source_ts) => {
-  // one thread per user, need a better way to insert unique objects
-  db.get("sessions")
-    .set(user, { channel, ts, source_ts })
-    .write();
-};
-
 const getSession = user =>
   db
     .get("sessions")
     .get(user)
     .value();
 
+const updateSession = (user, newSession) => {
+  const session = {...getSession(user), ...newSession, id: user};
+  return db.get("sessions").set(user, session).write()[user];
+}
+
 const clearSession = user =>
   db
     .get("sessions")
     .get(user)
     .set("ts", undefined)
+    .set("mentor", undefined)
+    .set("group_id", undefined)
     .write();
 
-const getUserIdByThreadTs = threadTs => 
+const getUserIdByThreadTs = threadTs =>
   db
     .get("sessions")
     .findKey(channel => channel.ts === threadTs)
@@ -42,8 +42,8 @@ const getUserIdByThreadTs = threadTs =>
 module.exports = {
   getChannelId,
   setChannelId,
-  createSession,
   getSession,
   clearSession,
-  getUserIdByThreadTs
+  getUserIdByThreadTs,
+  updateSession
 };
