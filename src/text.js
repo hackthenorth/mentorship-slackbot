@@ -28,5 +28,7 @@ event.`,
     `Thank you for claiming <@${id}>'s request ️❤️. Please use this message to private message to manage this session.`,
   SESSION_DELETED:
     "Your mentorship session was deleted by a mentor - if you believe this was a mistake, please make a new request or contact our mentorship lead @bonnie",
-  SESSION_INTRODUCTION: (session) => `👋 Hello <@${session.id}>! Your session has been claimed by <@${session.mentor}>, our resident expert of Hacking, Northing, and everything in-between. As a reminder, your request was as follows:`
+  SESSION_INTRODUCTION: (session) => `👋 Hello <@${session.id}>! Your session has been claimed by <@${session.mentor}>, our resident expert of Hacking, Northing, and everything in-between. As a reminder, your request was as follows:`,
+  SESSION_SURRENDERED_MENTOR: `You have surrendered the session`,
+  SESSION_SURRENDERED: (session) => `<@${session.mentor}> has surrendered - your request will be placed back in the pool of active mentor requests`,
 };

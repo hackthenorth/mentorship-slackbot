@@ -340,8 +340,17 @@ const sessionIntroduction = session => {
     as_user: true
   });
 
+  // update the existing user message
+  web.chat.update({
+    channel: mentor_channel,
+    ts: session.ts,
+    blocks: buildMentorRequest(session),
+    as_user: true,
+    username: BOT_USERNAME
+  });
+
   // let the mentor know
-  web.chat.postMessage({
+  return web.chat.postMessage({
     channel: session.mentor,
     blocks: [
       {
@@ -379,14 +388,35 @@ const sessionIntroduction = session => {
     ],
     as_user: true
   });
+};
 
-  // update the existing user message
-  return web.chat.update({
-    channel: mentor_channel,
-    ts: session.ts,
-    blocks: buildMentorRequest(session),
-    as_user: true,
-    username: BOT_USERNAME
+const sessionSurrendered = session => {
+  web.chat.postMessage({
+    channel: session.group_id,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: Text.SESSION_SURRENDERED(session)
+        }
+      }
+    ],
+    as_user: true
+  });
+  web.chat.update({
+    channel: session.mentor,
+    ts: session.mentor_claim_ts,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: Text.SESSION_SURRENDERED_MENTOR
+        }
+      }
+    ],
+    as_user: true
   });
 };
 
@@ -421,5 +451,6 @@ module.exports = {
   postSessionDeleted,
   postDMToThread,
   postThreadMessageToDM,
-  sessionIntroduction
+  sessionIntroduction,
+  sessionSurrendered
 };

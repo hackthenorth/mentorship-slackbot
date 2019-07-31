@@ -70,9 +70,13 @@ const handleClaimRequest = payload => {
     })
     .then(response => {
       const groupId = response.channel.id;
-      message.sessionIntroduction(
-        updateSession(session.id, { group_id: groupId })
-      );
+      message
+        .sessionIntroduction(updateSession(session.id, { group_id: groupId }))
+        .then(({ ts }) =>
+          updateSession(userId, {
+            mentor_claim_ts: ts
+          })
+        );
     });
 };
 
@@ -88,12 +92,27 @@ const handleDeleteRequest = payload => {
   // respond in DM
 };
 
+const handleSurrenderRequest = payload => {
+  const userId = payload.actions[0].value;
+  const session = getSession(userId);
+  message.sessionSurrendered(session);
+  updateSession(userId, {
+    mentor_claim_ts: undefined,
+    group_id: undefined,
+    mentor: undefined
+  });
+};
+
 const bootstrap = interactions => {
   interactions.action({ actionId: "need_mentor" }, handleNeedMentor);
   interactions.action({ callbackId: "mentor_request" }, handleMentorRequest);
   interactions.action({ actionId: "cancel_request" }, handleCancelRequest);
   interactions.action({ actionId: "claim_request" }, handleClaimRequest);
   interactions.action({ actionId: "delete_request" }, handleDeleteRequest);
+  interactions.action(
+    { actionId: "surrender_request" },
+    handleSurrenderRequest
+  );
 };
 
 module.exports = { bootstrap };
