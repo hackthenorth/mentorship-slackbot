@@ -6,7 +6,7 @@ const Text = require("../text");
 
 const { getMentorRequestChannelId } = require("../actions/channel");
 
-const mentor_channel = getMentorRequestChannelId();
+const mentor_group_channel = getMentorRequestChannelId();
 
 const postThreadMessageToDM = (session, source_ts, text) => {
   web.chat
@@ -28,7 +28,7 @@ const postThreadMessageToDM = (session, source_ts, text) => {
     .then(() => {
       web.reactions.add({
         name: "airplane_departure",
-        channel: mentor_channel,
+        channel: mentor_group_channel,
         timestamp: source_ts
       });
     });
@@ -37,7 +37,7 @@ const postThreadMessageToDM = (session, source_ts, text) => {
 const postDMToThread = (session, source_ts, text) => {
   web.chat
     .postMessage({
-      channel: mentor_channel,
+      channel: mentor_group_channel,
       thread_ts: session.ts,
       blocks: [
         {
@@ -139,7 +139,7 @@ const buildMentorRequest = (session, intro = false) => {
 
 const postMentorRequest = session => {
   return web.chat.postMessage({
-    channel: mentor_channel,
+    channel: mentor_group_channel,
     blocks: buildMentorRequest(session),
     as_user: true,
     username: BOT_USERNAME
@@ -342,7 +342,7 @@ const sessionIntroduction = session => {
 
   // update the existing user message
   web.chat.update({
-    channel: mentor_channel,
+    channel: mentor_group_channel,
     ts: session.ts,
     blocks: buildMentorRequest(session),
     as_user: true,
@@ -405,7 +405,7 @@ const sessionSurrendered = session => {
     as_user: true
   });
   web.chat.update({
-    channel: session.mentor,
+    channel: session.mentor_channel,
     ts: session.mentor_claim_ts,
     blocks: [
       {

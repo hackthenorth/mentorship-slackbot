@@ -72,9 +72,10 @@ const handleClaimRequest = payload => {
       const groupId = response.channel.id;
       message
         .sessionIntroduction(updateSession(session.id, { group_id: groupId }))
-        .then(({ ts }) =>
+        .then(({ ts, channel }) =>
           updateSession(userId, {
-            mentor_claim_ts: ts
+            mentor_claim_ts: ts,
+            mentor_channel: channel
           })
         );
     });
