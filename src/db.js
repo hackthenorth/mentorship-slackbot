@@ -30,6 +30,7 @@ const clearSession = user =>
     .get(user)
     .set("ts", undefined)
     .set("mentor", undefined)
+    .set("mentor_claim_ts", undefined)
     .set("group_id", undefined)
     .write();
 

@@ -391,7 +391,21 @@ const sessionIntroduction = session => {
 };
 
 const sessionSurrendered = session => {
-  web.chat.postMessage({
+  web.chat.update({
+    channel: session.mentor_channel,
+    ts: session.mentor_claim_ts,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: Text.SESSION_SURRENDERED_MENTOR
+        }
+      }
+    ],
+    as_user: true
+  });
+  return web.chat.postMessage({
     channel: session.group_id,
     blocks: [
       {
@@ -404,6 +418,9 @@ const sessionSurrendered = session => {
     ],
     as_user: true
   });
+};
+
+const sessionCompleted = session => {
   web.chat.update({
     channel: session.mentor_channel,
     ts: session.mentor_claim_ts,
@@ -412,7 +429,34 @@ const sessionSurrendered = session => {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: Text.SESSION_SURRENDERED_MENTOR
+          text: Text.SESSION_COMPLETED_MENTOR
+        }
+      }
+    ],
+    as_user: true
+  });
+  web.chat.update({
+    channel: session.channel,
+    ts: session.mentee_ts,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: Text.SESSION_COMPLETED_MENTEE
+        }
+      }
+    ],
+    as_user: true
+  });
+  return web.chat.postMessage({
+    channel: session.group_id,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: Text.SESSION_COMPLETED(session)
         }
       }
     ],
@@ -452,5 +496,6 @@ module.exports = {
   postDMToThread,
   postThreadMessageToDM,
   sessionIntroduction,
-  sessionSurrendered
+  sessionSurrendered,
+  sessionCompleted
 };

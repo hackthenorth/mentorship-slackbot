@@ -31,4 +31,7 @@ event.`,
   SESSION_INTRODUCTION: (session) => `👋 Hello <@${session.id}>! Your session has been claimed by <@${session.mentor}>, our resident expert of Hacking, Northing, and everything in-between. As a reminder, your request was as follows:`,
   SESSION_SURRENDERED_MENTOR: `You have surrendered the session`,
   SESSION_SURRENDERED: (session) => `<@${session.mentor}> has surrendered - your request will be placed back in the pool of active mentor requests`,
+  SESSION_COMPLETED_MENTOR: `Your session has has been marked complete`,
+  SESSION_COMPLETED_MENTEE: `Your session has been marked complete`,
+  SESSION_COMPLETED: (session) => `<@${session.mentor}> has marked this session as completed. Archiving this channel 😎`,
 };
