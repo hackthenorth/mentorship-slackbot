@@ -1,5 +1,3 @@
-const Moniker = require("moniker");
-
 const Text = require("../text");
 
 const message = require("../actions/message");
@@ -58,11 +56,6 @@ const handleClaimRequest = payload => {
   const userId = getUserIdByThreadTs(payload.message.ts);
   const session = updateSession(userId, { mentor: payload.user.id });
 
-  // create group, prevent dup channel names
-  const hash = Math.round(new Date().getTime() / 1000)
-    .toString()
-    .slice(-6);
-
   web.conversations
     .open({
       users: [session.id, session.mentor].join(",")
@@ -98,8 +91,8 @@ const handleSurrenderRequest = payload => {
   const userId = payload.actions[0].value;
   const session = getSession(userId);
   message.sessionSurrendered(session).then(() => {
-    console.log(session.group_id);
-    web.conversations.close({ channel: session.group_id });
+    console.log("Closing");
+    web.conversations.close({ channel: session.group_id }).catch(console.error).then(console.log);
     updateSession(userId, {
       mentor_claim_ts: undefined,
       group_id: undefined,

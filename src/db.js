@@ -6,12 +6,7 @@ const db = low(adapter);
 
 const { CHANNEL_ID } = require("../config");
 
-// Set some defaults (required if your JSON file is empty)
-db.defaults({ channel_id: CHANNEL_ID || "", sessions: {} }).write();
-
-const getChannelId = () => db.get("channel_id").value();
-
-const setChannelId = id => db.set("channel_id", id).write();
+const getChannelId = () => CHANNEL_ID;
 
 const getSession = user =>
   db
@@ -42,7 +37,6 @@ const getUserIdByThreadTs = threadTs =>
 
 module.exports = {
   getChannelId,
-  setChannelId,
   getSession,
   clearSession,
   getUserIdByThreadTs,

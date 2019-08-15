@@ -6,8 +6,7 @@ const { getSession, updateSession } = require("../db");
 
 // tries to add a member to our index
 const tryAdd = member => {
-  if (member.name !== "pei") return;
-  if (getSession(member.id) == null) {
+  if (!member.is_bot && getSession(member.id) == null) {
     web.im.open({ user: member.id }).then(({ channel }) => {
       welcome(
         updateSession(member.id, {

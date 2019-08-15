@@ -1,12 +1,36 @@
 const http = require("http");
 const bodyParser = require("body-parser");
 const express = require("express");
+const request = require('request');
 
 const port = process.env.PORT || 3000;
 
 const { events, interactions } = require("./clients");
 
+const { SLACK_CLIENT_ID, SLACK_CLIENT_SECRET } = require("../config");
+
 const app = express();
+
+app.get('/auth', function(req, res){
+  if (!req.query.code) { // access denied
+    return;
+  }
+  var data = {form: {
+    client_id: SLACK_CLIENT_ID,
+    client_secret: SLACK_CLIENT_SECRET,
+    code: req.query.code
+  }};
+  request.post('https://slack.com/api/oauth.access', data, function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+      // Get an auth token
+      let oauthToken = JSON.parse(body).access_token;
+
+      console.log(body);
+      // OAuth done- redirect the user to wherever
+      res.redirect(__dirname + "/public/success.html");
+    }
+  })
+});
 
 // Plug the event adapter into the express app as middleware
 app.use("/slack/events", events.expressMiddleware());

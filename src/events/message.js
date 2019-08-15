@@ -13,10 +13,6 @@ const messageHandler = event => {
   if (event.channel_type === "group") {
     // private channel messages
     if (event.subtype === "bot_message") {
-      // if (event.blocks && event.blocks[0].block_id === 'mentor_request') {
-      //   // record timestamp and DM channel so there's a reference for threads
-      //   createSession(event.user, event.blocks[1].block_id, event.event_ts);
-      // }
     } else {
       // send thread message to DM
       const user = db.getUserIdByThreadTs(event.thread_ts);
