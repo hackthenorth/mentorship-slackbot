@@ -41,13 +41,10 @@ const handleMentorRequest = payload => {
 };
 
 const handleCancelRequest = ({ user: { id } }, respond) => {
-  respond({
-    text: "Your request was canceled"
-  });
-  const { channel, ts } = getSession(id);
-  web.chat.delete({ channel: getMentorRequestChannelId(), ts });
+  const session = getSession(id);
+  message.postSessionCanceled(session);
   clearSession(id);
-  message.needMentor(channel);
+  message.needMentor(session);
 
   // respond in private mentor channel
 };
@@ -76,10 +73,6 @@ const handleClaimRequest = payload => {
 const handleDeleteRequest = payload => {
   const userId = payload.actions[0].value;
   const session = getSession(userId);
-  web.chat.delete({
-    channel: getMentorRequestChannelId(),
-    ts: session.ts
-  });
   if (session.group_id != null) {
     web.conversations.close({ channel: session.group_id });
   }
@@ -91,8 +84,7 @@ const handleSurrenderRequest = payload => {
   const userId = payload.actions[0].value;
   const session = getSession(userId);
   message.sessionSurrendered(session).then(() => {
-    console.log("Closing");
-    web.conversations.close({ channel: session.group_id }).catch(console.error).then(console.log);
+    web.conversations.close({ channel: session.group_id });
     updateSession(userId, {
       mentor_claim_ts: undefined,
       group_id: undefined,

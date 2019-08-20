@@ -16,9 +16,11 @@ const messageHandler = event => {
     } else {
       // send thread message to DM
       const user = db.getUserIdByThreadTs(event.thread_ts);
-      const session = db.getSession(user);
       if (user) {
-        message.postThreadMessageToDM(session, event.ts, event.text);
+        const session = db.getSession(user);
+        if (session && session.submission) {
+          message.postThreadMessageToDM(session, event.ts, event.text);
+        }
       }
     }
   } else if (event.channel_type === "im") {

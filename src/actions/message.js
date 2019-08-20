@@ -60,44 +60,118 @@ const postDMToThread = (session, source_ts, text) => {
     });
 };
 
-const buildMentorRequest = (session, intro = false) => {
-  const actions =
-    session.mentor != null
-      ? {
-          type: "context",
-          elements: [
-            {
-              type: "mrkdwn",
-              text: Text.MENTOR_REQUEST_CLAIMED(session.mentor)
-            }
-          ]
+const buildMentorRequestActions = (session, context) => {
+  const footer = {
+    type: "context",
+    block_id: "mentor_request_footer",
+    elements: [
+      {
+        type: "mrkdwn",
+        text: Text.MENTOR_REQUEST_FOOTER
+      }
+    ]
+  };
+  switch (context) {
+    case "deleted":
+      return [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: Text.MENTOR_REQUEST_DELETED
+          }
         }
-      : {
+      ];
+    case "canceled":
+      return [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: Text.MENTOR_REQUEST_CANCELED
+          }
+        }
+      ];
+    case "mentee":
+      return [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: Text.REQUEST_CONFIRM
+          }
+        },
+        {
           type: "actions",
           elements: [
             {
-              action_id: "claim_request",
+              action_id: "cancel_request",
               type: "button",
               text: {
                 type: "plain_text",
-                text: Text.MENTOR_REQUEST_CONFIRM
-              },
-              style: "primary",
-              value: "claim"
-            },
-            {
-              action_id: "delete_request",
-              type: "button",
-              text: {
-                type: "plain_text",
-                emoji: true,
-                text: Text.MENTOR_REQUEST_DELETE
-              },
-              style: "danger",
-              value: session.id
+                text: Text.CANCEL_REQUEST_BUTTON
+              }
             }
           ]
-        };
+        }
+      ];
+    case "mentee_completed":
+      return [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: Text.SESSION_COMPLETED_MENTEE
+          }
+        }
+      ];
+    case "intro":
+      return [];
+    case null:
+      return [
+        session.mentor != null
+          ? {
+              type: "context",
+              elements: [
+                {
+                  type: "mrkdwn",
+                  text: Text.MENTOR_REQUEST_CLAIMED(session.mentor)
+                }
+              ]
+            }
+          : {
+              type: "actions",
+              elements: [
+                {
+                  action_id: "claim_request",
+                  type: "button",
+                  text: {
+                    type: "plain_text",
+                    text: Text.MENTOR_REQUEST_CONFIRM
+                  },
+                  style: "primary",
+                  value: "claim"
+                },
+                {
+                  action_id: "delete_request",
+                  type: "button",
+                  text: {
+                    type: "plain_text",
+                    emoji: true,
+                    text: Text.MENTOR_REQUEST_DELETE
+                  },
+                  style: "danger",
+                  value: session.id
+                }
+              ]
+            },
+        footer
+      ];
+  }
+};
+
+const buildMentorRequest = (session, context = null) => {
+  const actions = buildMentorRequestActions(session, context);
   return [
     {
       type: "divider"
@@ -119,21 +193,7 @@ const buildMentorRequest = (session, intro = false) => {
         text: Text.MENTOR_REQUEST_DETAILS(session.submission)
       }
     },
-    ...(intro === true
-      ? []
-      : [
-          actions,
-          {
-            type: "context",
-            block_id: "mentor_request_footer",
-            elements: [
-              {
-                type: "mrkdwn",
-                text: Text.MENTOR_REQUEST_FOOTER
-              }
-            ]
-          }
-        ])
+    ...actions
   ];
 };
 
@@ -177,29 +237,7 @@ const confirmMentorRequest = session => {
   web.chat.update({
     channel: session.channel,
     ts: session.mentee_ts,
-    text: Text.REQUEST_CONFIRM,
-    blocks: [
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: Text.REQUEST_CONFIRM
-        }
-      },
-      {
-        type: "actions",
-        elements: [
-          {
-            action_id: "cancel_request",
-            type: "button",
-            text: {
-              type: "plain_text",
-              text: Text.CANCEL_REQUEST_BUTTON
-            }
-          }
-        ]
-      }
-    ],
+    blocks: buildMentorRequest(session, "mentee"),
     as_user: true,
     username: BOT_USERNAME
   });
@@ -228,6 +266,27 @@ const confirmMentorRequest = session => {
     as_user: true
   });
 };
+
+const bumpMentorRequest = (session) => {
+  const permalink = web.chat.getPermalink({
+    channel: mentor_group_channel,
+    message_ts: session.ts
+  }).then(({permalink}) => {
+    web.chat.postMessage({
+      channel: mentor_group_channel,
+      blocks: [{
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: Text.BUMP(permalink, session)
+        }
+      }],
+      unfurl_links: true,
+      as_user: true,
+      username: BOT_USERNAME
+    })
+  });
+}
 
 const requestActionBlock = {
   type: "actions",
@@ -274,7 +333,7 @@ const noSession = ({ channel }) => {
   web.chat
     .postMessage({
       channel,
-      text: Text.WELCOME(),
+      text: Text.NO_SESSION,
       blocks: [
         {
           type: "section",
@@ -304,7 +363,7 @@ const noUnderstand = ({ channel }) => {
     .catch(console.error);
 };
 
-const needMentor = channel => {
+const needMentor = ({ channel }) => {
   web.chat.postMessage({
     channel: channel,
     text: Text.NEED_MENTOR,
@@ -335,7 +394,7 @@ const sessionIntroduction = session => {
           text: Text.SESSION_INTRODUCTION(session)
         }
       },
-      ...buildMentorRequest(session, true)
+      ...buildMentorRequest(session, "intro")
     ],
     as_user: true
   });
@@ -364,6 +423,16 @@ const sessionIntroduction = session => {
         type: "actions",
         elements: [
           {
+            action_id: "complete_request",
+            type: "button",
+            text: {
+              type: "plain_text",
+              text: Text.MENTOR_REQUEST_COMPLETE
+            },
+            style: "primary",
+            value: session.id
+          },
+          {
             action_id: "surrender_request",
             type: "button",
             text: {
@@ -377,7 +446,6 @@ const sessionIntroduction = session => {
             type: "button",
             text: {
               type: "plain_text",
-              emoji: true,
               text: Text.MENTOR_REQUEST_DELETE
             },
             style: "danger",
@@ -405,6 +473,7 @@ const sessionSurrendered = session => {
     ],
     as_user: true
   });
+  bumpMentorRequest(session);
   return web.chat.postMessage({
     channel: session.group_id,
     blocks: [
@@ -438,17 +507,11 @@ const sessionCompleted = session => {
   web.chat.update({
     channel: session.channel,
     ts: session.mentee_ts,
-    blocks: [
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: Text.SESSION_COMPLETED_MENTEE
-        }
-      }
-    ],
-    as_user: true
+    blocks: buildMentorRequest(session, "mentee_completed"),
+    as_user: true,
+    username: BOT_USERNAME
   });
+  noSession(session);
   return web.chat.postMessage({
     channel: session.group_id,
     blocks: [
@@ -464,8 +527,55 @@ const sessionCompleted = session => {
   });
 };
 
-const postSessionDeleted = ({ channel, mentee_ts }) => {
-  web.chat.delete({ channel, ts: mentee_ts });
+const postSessionCanceled = session => {
+  web.chat.update({
+    channel: session.channel,
+    ts: session.mentee_ts,
+    blocks: buildMentorRequest(session, "canceled"),
+    as_user: true,
+    username: BOT_USERNAME
+  });
+  web.chat.update({
+    channel: mentor_group_channel,
+    ts: session.ts,
+    blocks: buildMentorRequest(session, "canceled"),
+    as_user: true,
+    username: BOT_USERNAME
+  });
+};
+
+const postSessionDeleted = session => {
+  const { channel, mentor_channel, mentee_ts, mentor_claim_ts, ts } = session;
+  web.chat.update({
+    channel: mentor_group_channel,
+    ts: ts,
+    blocks: buildMentorRequest(session, "deleted"),
+    as_user: true,
+    username: BOT_USERNAME
+  });
+  if (mentor_claim_ts != null) {
+    web.chat.update({
+      channel: mentor_channel,
+      ts: mentor_claim_ts,
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: Text.SESSION_DELETED_MENTOR
+          }
+        }
+      ],
+      as_user: true
+    });
+  }
+  web.chat.update({
+    channel,
+    ts: mentee_ts,
+    blocks: buildMentorRequest(session, "deleted"),
+    as_user: true,
+    username: BOT_USERNAME
+  });
   web.chat
     .postMessage({
       channel,
@@ -481,7 +591,7 @@ const postSessionDeleted = ({ channel, mentee_ts }) => {
       ],
       as_user: true
     })
-    .then(() => needMentor(channel));
+    .then(() => needMentor(session));
 };
 
 module.exports = {
@@ -493,6 +603,7 @@ module.exports = {
   confirmMentorRequest,
   postMentorRequest,
   postSessionDeleted,
+  postSessionCanceled,
   postDMToThread,
   postThreadMessageToDM,
   sessionIntroduction,
