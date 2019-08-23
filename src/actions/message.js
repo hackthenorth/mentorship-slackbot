@@ -1,6 +1,6 @@
 const { web } = require("../clients");
 
-const { BOT_USERNAME } = require("../../config");
+const { BOT_USERNAME, SKILLS } = require("../../config");
 
 const Text = require("../text");
 
@@ -183,7 +183,7 @@ const buildMentorRequest = (session, context = null) => {
         {
           type: "mrkdwn",
           text: Text.MENTOR_REQUEST_TITLE(session.username, session.submission)
-        }
+        },
       ]
     },
     {
@@ -221,6 +221,18 @@ const openMentorRequestDialog = (trigger_id, ts) => {
           label: "Your Location",
           name: "location",
           max_length: 50
+        },
+        {
+          label: "Choose a category",
+          name: "skill",
+          type: "select",
+          optional: true,
+          options: Object.keys(SKILLS).map(
+            value => ({
+              label: SKILLS[value],
+              value
+            })
+          )
         },
         {
           type: "textarea",
@@ -267,26 +279,30 @@ const confirmMentorRequest = session => {
   });
 };
 
-const bumpMentorRequest = (session) => {
-  const permalink = web.chat.getPermalink({
-    channel: mentor_group_channel,
-    message_ts: session.ts
-  }).then(({permalink}) => {
-    web.chat.postMessage({
+const bumpMentorRequest = session => {
+  web.chat
+    .getPermalink({
       channel: mentor_group_channel,
-      blocks: [{
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: Text.BUMP(permalink, session)
-        }
-      }],
-      unfurl_links: true,
-      as_user: true,
-      username: BOT_USERNAME
+      message_ts: session.ts
     })
-  });
-}
+    .then(({ permalink }) => {
+      web.chat.postMessage({
+        channel: mentor_group_channel,
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: Text.BUMP(permalink, session)
+            }
+          }
+        ],
+        unfurl_links: true,
+        as_user: true,
+        username: BOT_USERNAME
+      });
+    });
+};
 
 const requestActionBlock = {
   type: "actions",
@@ -473,7 +489,6 @@ const sessionSurrendered = session => {
     ],
     as_user: true
   });
-  bumpMentorRequest(session);
   return web.chat.postMessage({
     channel: session.group_id,
     blocks: [
@@ -608,5 +623,6 @@ module.exports = {
   postThreadMessageToDM,
   sessionIntroduction,
   sessionSurrendered,
-  sessionCompleted
+  sessionCompleted,
+  bumpMentorRequest
 };

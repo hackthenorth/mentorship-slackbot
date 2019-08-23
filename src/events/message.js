@@ -17,7 +17,8 @@ const messageHandler = event => {
       // send thread message to DM
       const user = db.getUserIdByThreadTs(event.thread_ts);
       if (user) {
-        const session = db.getSession(user);
+        // implicity update the session last_updated
+        const session = db.updateSession(user, {});
         if (session && session.submission) {
           message.postThreadMessageToDM(session, event.ts, event.text);
         }

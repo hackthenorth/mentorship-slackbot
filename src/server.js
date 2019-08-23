@@ -58,4 +58,4 @@ http.createServer(app).listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
 
-require("./actions/users").rescan();
+require("./actions/timed").init();

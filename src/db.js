@@ -8,14 +8,30 @@ const { CHANNEL_ID } = require("../config");
 
 const getChannelId = () => CHANNEL_ID;
 
+if (db.get("sessions").value() == null) {
+  db.set("sessions", {}).write();
+}
+
 const getSession = user =>
   db
     .get("sessions")
     .get(user)
     .value();
 
+const getSessionsToBump = () => {
+  const sessions = db.get("sessions").filter(session => 
+      session.submission != null && 
+      session.mentor == null && 
+      new Date(session.last_updated).getTime() < new Date().getTime() - (1000 * 60 * 10)
+  ).value();
+  for (const session of sessions) {
+    db.get("sessions").get(session.id).set("last_updated", new Date().toString()).write();
+  }
+  return sessions;
+}
+
 const updateSession = (user, newSession) => {
-  const session = {...getSession(user), ...newSession, id: user};
+  const session = {...(getSession(user) || {}), ...newSession, id: user, last_updated: new Date().toString()};
   return db.get("sessions").set(user, session).write()[user];
 }
 
@@ -35,10 +51,35 @@ const getUserIdByThreadTs = threadTs =>
     .findKey(channel => channel.ts === threadTs)
     .value();
 
+const getMentors = () =>
+  db
+    .get("mentors")
+    .value() || {};
+
+const setMentors = (mentors) =>
+  db 
+    .set("mentors", mentors)
+    .write();
+
+const getOnline = () => 
+  db
+    .get("online")
+    .value() || 0;
+
+const setOnline = (count) =>
+  db
+    .set("online", count)
+    .write();
+
 module.exports = {
   getChannelId,
   getSession,
+  getSessionsToBump,
   clearSession,
   getUserIdByThreadTs,
-  updateSession
+  updateSession,
+  getMentors,
+  setMentors,
+  getOnline,
+  setOnline,
 };

@@ -1,3 +1,9 @@
+const { SKILLS } = require("../config");
+
+const db = require("./db");
+
+const 
+
 module.exports = {
   WELCOME: name =>
     `Hi ${name ? name : "hacker"}, welcome to Hack the North 2019! :wave:
@@ -15,8 +21,8 @@ event.`,
   MENTOR_REQUEST_CLAIMED: claimer => `Request claimed by <@${claimer}>`,
   MENTOR_REQUEST_CANCELED: "*Request canceled by user*",
   MENTOR_REQUEST_DELETED: "*Request has been deleted*",
-  MENTOR_REQUEST_TITLE: (user, { location }) =>
-    `Mentorship request from @${user}\nLocation: ${location}`,
+  MENTOR_REQUEST_TITLE: (user, { location, skill }) =>
+    `Mentorship request from @${user}\nLocation: ${location}${skill != null ? `\nCategory: ${SKILLS[skill]}` : ''}`,
   MENTOR_REQUEST_DETAILS: ({ description }) => description,
   MENTOR_REQUEST_FOOTER:
     "You may use this message's thread to communicate with the user and request further clarification",
