@@ -2,8 +2,6 @@ const { SKILLS } = require("../config");
 
 const db = require("./db");
 
-const 
-
 module.exports = {
   WELCOME: name =>
     `Hi ${name ? name : "hacker"}, welcome to Hack the North 2019! :wave:
@@ -11,11 +9,13 @@ module.exports = {
 I’m Mentorship Bot, here to help you
 find a mentor at any time during the
 event.`,
-  BUMP: (permalink, session) => `<@${session.id}>'s <${permalink}|request regarding ${session.submission.technology}> has not received any attention recently. Please take a look!`,
+  BUMP: (permalink, session) => `<@${session.id}>'s <${permalink}|mentorship request${session.submission.skill != null ? ` regarding ${session.submission.skill}` : ''}> has not received any attention recently. Please take a look!`,
+  BUMP_SURRENDER: (permalink, session) => `<@${session.id}>'s <${permalink}|mentorship request${session.submission.skill != null ? ` regarding ${session.submission.skill}` : ''}> *was surrendered*. Someone please take a look!`,
   NEED_MENTOR: "Need a mentor? Simply click the button below.",
   NEED_MENTOR_BUTTON: "I need a mentor",
   NO_SESSION: "You do not currently have a mentorship session active.",
   NO_UNDERSTAND: "Sorry, I am not equipped to deal with messages.",
+  NO_UNDERSTAND_MENTOR: "Sorry, I don't understand your message. Try `!skills help` to see and set your skills",
   REQUEST_CONFIRM: "*Your request has been sent to mentors*",
   CANCEL_REQUEST_BUTTON: "Cancel Request",
   MENTOR_REQUEST_CLAIMED: claimer => `Request claimed by <@${claimer}>`,
@@ -34,7 +34,7 @@ event.`,
     `Your request has been submitted @${username}!`,
   MENTEE_MESSAGE_NOTIF_CONTEXT: `Until you are matched, you may send a message to this thread to communicate with mentors. Similarly, I will forward any questions the mentors may have into this thread as well :)`,
   SESSION_ALREADY_ACTIVE: "You already have an active mentorship session",
-  SESSION_CLAIMED: ({mentor, id}) =>
+  SESSION_CLAIMED: ({id}) =>
     `Thank you for claiming <@${id}>'s request ️❤️. Please use this message to private message to manage this session.`,
   SESSION_DELETED:
     "Your mentorship request was deleted by a mentor - if you believe this was a mistake, please make a new request or contact our mentorship lead @bonnie",
@@ -45,4 +45,20 @@ event.`,
   SESSION_COMPLETED_MENTOR: `Your session has has been marked complete`,
   SESSION_COMPLETED_MENTEE: `*Your request has been marked complete*`,
   SESSION_COMPLETED: (session) => `<@${session.mentor}> has marked this session as completed. Archiving this channel 😎`,
+  SKILLS_HELP: (skills) => 
+    `Set your skills so we can notify you when a relevant request comes in! 
+
+You can set your skills with the command 
+\`\`\`
+!skills [skill1] [skill2] ...
+\`\`\`
+
+*The available skills are:*
+
+${skills.join("\n")}`,
+  SKILLS_SET: (skills) => `You have successfully set your skills to 
+\`\`\`
+${skills.length > 0 ? `[\n  ${skills.join(",\n  ")}\n]` : `[None]`}
+\`\`\` 
+`
 };

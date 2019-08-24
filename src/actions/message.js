@@ -366,11 +366,25 @@ const noUnderstand = ({ channel }) => {
   web.chat
     .postMessage({
       channel,
-      text: Text.NO_UNDERSTAND,
       blocks: [
         {
           type: "section",
           text: { type: "mrkdwn", text: Text.NO_UNDERSTAND }
+        }
+      ],
+      as_user: true,
+      username: BOT_USERNAME
+    })
+    .catch(console.error);
+};
+const noUnderstandMentor = (channel) => {
+  web.chat
+    .postMessage({
+      channel,
+      blocks: [
+        {
+          type: "section",
+          text: { type: "mrkdwn", text: Text.NO_UNDERSTAND_MENTOR }
         }
       ],
       as_user: true,
@@ -474,7 +488,7 @@ const sessionIntroduction = session => {
   });
 };
 
-const sessionSurrendered = session => {
+const sessionSurrendered = (session, newSession) => {
   web.chat.update({
     channel: session.mentor_channel,
     ts: session.mentor_claim_ts,
@@ -489,6 +503,35 @@ const sessionSurrendered = session => {
     ],
     as_user: true
   });
+  web.chat.update({
+    channel: mentor_group_channel,
+    ts: session.ts,
+    blocks: buildMentorRequest(newSession),
+    as_user: true,
+    username: BOT_USERNAME
+  });
+  web.chat
+    .getPermalink({
+      channel: mentor_group_channel,
+      message_ts: session.ts
+    })
+    .then(({ permalink }) => {
+      web.chat.postMessage({
+        channel: mentor_group_channel,
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: Text.BUMP_SURRENDER(permalink, session)
+            }
+          }
+        ],
+        unfurl_links: true,
+        as_user: true,
+        username: BOT_USERNAME
+      });
+    });
   return web.chat.postMessage({
     channel: session.group_id,
     blocks: [
@@ -609,11 +652,45 @@ const postSessionDeleted = session => {
     .then(() => needMentor(session));
 };
 
+const skillsHelp = (channel) => {
+  web.chat
+    .postMessage({
+      channel,
+      blocks: [
+        {
+          type: "section",
+          text: { type: "mrkdwn", text: Text.SKILLS_HELP(Object.keys(SKILLS)) }
+        }
+      ],
+      as_user: true,
+      username: BOT_USERNAME
+    })
+    .catch(console.error);
+};
+
+const skillsSet = (channel, newSkills) => {
+  web.chat
+    .postMessage({
+      channel,
+      blocks: [
+        {
+          type: "section",
+          text: { type: "mrkdwn", text: Text.SKILLS_SET(newSkills) }
+        }
+      ],
+      as_user: true,
+      username: BOT_USERNAME
+    })
+    .catch(console.error);
+};
+
+
 module.exports = {
   welcome,
   needMentor,
   noSession,
   noUnderstand,
+  noUnderstandMentor,
   openMentorRequestDialog,
   confirmMentorRequest,
   postMentorRequest,
@@ -624,5 +701,7 @@ module.exports = {
   sessionIntroduction,
   sessionSurrendered,
   sessionCompleted,
-  bumpMentorRequest
+  bumpMentorRequest,
+  skillsHelp,
+  skillsSet,
 };

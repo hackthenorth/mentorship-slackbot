@@ -61,6 +61,19 @@ const setMentors = (mentors) =>
     .set("mentors", mentors)
     .write();
 
+const getMentor = (user) =>
+  db
+    .get("mentors")
+    .get(user)
+    .value();
+  
+const setMentorSkills = (user, skills) =>
+  db
+    .get("mentors")
+    .get(user)
+    .set("skills", skills)
+    .write();
+
 const getOnline = () => 
   db
     .get("online")
@@ -80,6 +93,8 @@ module.exports = {
   updateSession,
   getMentors,
   setMentors,
+  getMentor,
+  setMentorSkills,
   getOnline,
   setOnline,
 };

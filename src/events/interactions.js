@@ -73,9 +73,6 @@ const handleClaimRequest = payload => {
 const handleDeleteRequest = payload => {
   const userId = payload.actions[0].value;
   const session = getSession(userId);
-  if (session.group_id != null) {
-    web.conversations.close({ channel: session.group_id });
-  }
   message.postSessionDeleted(session);
   clearSession(userId);
 };
@@ -83,21 +80,19 @@ const handleDeleteRequest = payload => {
 const handleSurrenderRequest = payload => {
   const userId = payload.actions[0].value;
   const session = getSession(userId);
-  message.sessionSurrendered(session).then(() => {
-    web.conversations.close({ channel: session.group_id });
+  message.sessionSurrendered(session, 
     updateSession(userId, {
       mentor_claim_ts: undefined,
       group_id: undefined,
       mentor: undefined
-    });
-  });
+    })
+  );
 };
 
 const handleCompleteRequest = payload => {
   const userId = payload.actions[0].value;
   const session = getSession(userId);
   message.sessionCompleted(session).then(() => {
-    web.conversations.close({ channel: session.group_id });
     clearSession(userId);
   });
 };
