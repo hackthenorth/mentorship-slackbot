@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mentorship-slackbot
+  labels:
+    app: mentorship-slackbot
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: mentorship-slackbot
+  selector:
+    app: mentorship-slackbot
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mentorship-slackbot-persistent
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+--- 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mentorship-slackbot
+  labels:
+    app: mentorship-slackbot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mentorship-slackbot
+  template:
+    metadata:
+      labels:
+        app: mentorship-slackbot
+    spec:
+      volumes:
+        - name: mentorship-slackbot-disk
+          persistentVolumeClaim:
+            claimName: mentorship-slackbot-persistent
+        - name: mentorship-slackbot-secret
+          secret:
+            secretName: mentorship-slackbot-secret
+      containers:
+      - name: mentorship-slackbot
+        image: gcr.io/htn-techyon/mentorship-slackbot
+        volumeMounts:
+          - name: mentorship-slackbot-secret
+            mountPath: /srv/config.js
+            readOnly: true
+            subPath: config.js
+          - name: mentorship-slackbot-disk
+            mountPath: /srv/storage
+        resources:
+          requests:
+            cpu: 25m
+            memory: "0.025G"
+          limits:
+            cpu: 1000m
+            memory: "0.2G"
+
