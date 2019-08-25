@@ -1,5 +1,7 @@
 const { web } = require("../clients");
 
+const db = require("../db");
+
 const { BOT_USERNAME, SKILLS } = require("../../config");
 
 const Text = require("../text");
@@ -172,6 +174,11 @@ const buildMentorRequestActions = (session, context) => {
 
 const buildMentorRequest = (session, context = null) => {
   const actions = buildMentorRequestActions(session, context);
+  let mentors = [];
+  if (context == null && session.submission.skill != null) {
+    const allMentors = db.getMentors();
+    mentors = Object.keys(allMentors).filter(m => allMentors[m].skills[session.submission.skill] === true);
+  } 
   return [
     {
       type: "divider"
@@ -182,7 +189,7 @@ const buildMentorRequest = (session, context = null) => {
       elements: [
         {
           type: "mrkdwn",
-          text: Text.MENTOR_REQUEST_TITLE(session.username, session.submission)
+          text: Text.MENTOR_REQUEST_TITLE(session.username, session.submission, mentors)
         },
       ]
     },
