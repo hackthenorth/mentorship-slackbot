@@ -10,58 +10,6 @@ const { getMentorRequestChannelId } = require("../actions/channel");
 
 const mentor_group_channel = getMentorRequestChannelId();
 
-const postThreadMessageToDM = (session, source_ts, text) => {
-  web.chat
-    .postMessage({
-      channel: session.channel,
-      text,
-      thread_ts: session.mentee_ts,
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `@${session.username}: ` + text
-          }
-        }
-      ],
-      as_user: true
-    })
-    .then(() => {
-      web.reactions.add({
-        name: "airplane_departure",
-        channel: mentor_group_channel,
-        timestamp: source_ts
-      });
-    });
-};
-
-const postDMToThread = (session, source_ts, text) => {
-  web.chat
-    .postMessage({
-      channel: mentor_group_channel,
-      thread_ts: session.ts,
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text
-          }
-        }
-      ],
-      as_user: true,
-      username: BOT_USERNAME
-    })
-    .then(() => {
-      web.reactions.add({
-        name: "airplane_departure",
-        channel: session.channel,
-        timestamp: source_ts
-      });
-    });
-};
-
 const buildMentorRequestActions = (session, context) => {
   const footer = {
     type: "context",
@@ -259,30 +207,6 @@ const confirmMentorRequest = session => {
     blocks: buildMentorRequest(session, "mentee"),
     as_user: true,
     username: BOT_USERNAME
-  });
-  web.chat.postMessage({
-    channel: session.channel,
-    text: Text.MENTEE_MESSAGE_NOTIF(session.username),
-    thread_ts: session.mentee_ts,
-    blocks: [
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: Text.MENTEE_MESSAGE_NOTIF(session.username)
-        }
-      },
-      {
-        type: "context",
-        elements: [
-          {
-            type: "mrkdwn",
-            text: Text.MENTEE_MESSAGE_NOTIF_CONTEXT
-          }
-        ]
-      }
-    ],
-    as_user: true
   });
 };
 
