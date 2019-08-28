@@ -24,18 +24,15 @@ event.`,
   MENTOR_REQUEST_TITLE: (user, { location, skill }, mentors) =>
     `Mentorship request from @${user}\nLocation: ${location}${skill != null ? `\nCategory: ${SKILLS[skill]} ${mentors.length > 0 ? `(${mentors.map(m => `<@${m}>`).join(', ')})` : ''}` : ''}`,
   MENTOR_REQUEST_DETAILS: ({ description }) => description,
-  MENTOR_REQUEST_FOOTER:
-    "You may use this message's thread to communicate with the user and request further clarification",
   MENTOR_REQUEST_CONFIRM: "Claim",
   MENTOR_REQUEST_DELETE: "Delete",
   MENTOR_REQUEST_SURRENDER: "Surrender",
   MENTOR_REQUEST_COMPLETE: 'Mark Complete',
   MENTEE_MESSAGE_NOTIF: username =>
     `Your request has been submitted @${username}!`,
-  MENTEE_MESSAGE_NOTIF_CONTEXT: `Until you are matched, you may send a message to this thread to communicate with mentors. Similarly, I will forward any questions the mentors may have into this thread as well :)`,
   SESSION_ALREADY_ACTIVE: "You already have an active mentorship session",
   SESSION_CLAIMED: ({id}) =>
-    `Thank you for claiming <@${id}>'s request ️❤️. Please use this message to private message to manage this session.`,
+    `Thank you for claiming <@${id}>'s request ️❤️. Please use this message to manage this session.`,
   SESSION_DELETED:
     "Your mentorship request was deleted by a mentor - if you believe this was a mistake, please make a new request or contact our mentorship lead @bonnie",
   SESSION_DELETED_MENTOR: "This mentorship request has been deleted",

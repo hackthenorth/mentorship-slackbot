@@ -11,16 +11,6 @@ const { getMentorRequestChannelId } = require("../actions/channel");
 const mentor_group_channel = getMentorRequestChannelId();
 
 const buildMentorRequestActions = (session, context) => {
-  const footer = {
-    type: "context",
-    block_id: "mentor_request_footer",
-    elements: [
-      {
-        type: "mrkdwn",
-        text: Text.MENTOR_REQUEST_FOOTER
-      }
-    ]
-  };
   switch (context) {
     case "deleted":
       return [
@@ -115,7 +105,6 @@ const buildMentorRequestActions = (session, context) => {
                 }
               ]
             },
-        footer
       ];
   }
 };
