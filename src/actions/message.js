@@ -616,8 +616,6 @@ module.exports = {
   postMentorRequest,
   postSessionDeleted,
   postSessionCanceled,
-  postDMToThread,
-  postThreadMessageToDM,
   sessionIntroduction,
   sessionSurrendered,
   sessionCompleted,
