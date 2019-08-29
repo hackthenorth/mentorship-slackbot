@@ -12,7 +12,7 @@ const messageHandler = event => {
   ) {
     return;
   }
-  
+
   if (event.channel_type === "im") {
     const mentor = db.getMentor(event.user);
     if (mentor != null) {
@@ -20,10 +20,10 @@ const messageHandler = event => {
       if (text.indexOf("!skills") === 0) {
         const parts = text
           .substring(7)
-          .split(' ')
+          .split(" ")
           .map(s => s.trim())
           .filter(s => s.length > 0);
-        if (parts.length === 1 && parts[0] === 'help') {
+        if (parts.length === 1 && parts[0] === "help") {
           message.skillsHelp(event.user);
         } else {
           const skillsObj = {};

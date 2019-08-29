@@ -2,13 +2,16 @@ const { web } = require("../clients");
 
 const db = require("../db");
 
-const { BOT_USERNAME, SKILLS } = require("../../config");
+const {
+  BOT_USERNAME,
+  SKILLS,
+  CHANNEL_ID,
+  STATS_CHANNEL_ID
+} = require("../../config");
 
 const Text = require("../text");
 
-const { getMentorRequestChannelId } = require("../actions/channel");
-
-const mentor_group_channel = getMentorRequestChannelId();
+const mentor_group_channel = CHANNEL_ID;
 
 const buildMentorRequestActions = (session, context) => {
   switch (context) {
@@ -104,7 +107,7 @@ const buildMentorRequestActions = (session, context) => {
                   value: session.id
                 }
               ]
-            },
+            }
       ];
   }
 };
@@ -114,8 +117,10 @@ const buildMentorRequest = (session, context = null) => {
   let mentors = [];
   if (context == null && session.submission.skill != null) {
     const allMentors = db.getMentors();
-    mentors = Object.keys(allMentors).filter(m => allMentors[m].skills[session.submission.skill] === true);
-  } 
+    mentors = Object.keys(allMentors).filter(
+      m => allMentors[m].skills[session.submission.skill] === true
+    );
+  }
   return [
     {
       type: "divider"
@@ -126,8 +131,12 @@ const buildMentorRequest = (session, context = null) => {
       elements: [
         {
           type: "mrkdwn",
-          text: Text.MENTOR_REQUEST_TITLE(session.username, session.submission, mentors)
-        },
+          text: Text.MENTOR_REQUEST_TITLE(
+            session.username,
+            session.submission,
+            mentors
+          )
+        }
       ]
     },
     {
@@ -171,12 +180,10 @@ const openMentorRequestDialog = (trigger_id, ts) => {
           name: "skill",
           type: "select",
           optional: true,
-          options: Object.keys(SKILLS).map(
-            value => ({
-              label: SKILLS[value],
-              value
-            })
-          )
+          options: Object.keys(SKILLS).map(value => ({
+            label: SKILLS[value],
+            value
+          }))
         },
         {
           type: "textarea",
@@ -297,7 +304,7 @@ const noUnderstand = ({ channel }) => {
     })
     .catch(console.error);
 };
-const noUnderstandMentor = (channel) => {
+const noUnderstandMentor = channel => {
   web.chat
     .postMessage({
       channel,
@@ -572,7 +579,7 @@ const postSessionDeleted = session => {
     .then(() => needMentor(session));
 };
 
-const skillsHelp = (channel) => {
+const skillsHelp = channel => {
   web.chat
     .postMessage({
       channel,
@@ -604,6 +611,22 @@ const skillsSet = (channel, newSkills) => {
     .catch(console.error);
 };
 
+const stats = stats => {
+  web.chat.postMessage({
+    channel: STATS_CHANNEL_ID,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: Text.STATS(stats)
+        }
+      }
+    ],
+    as_user: true,
+    username: BOT_USERNAME
+  });
+};
 
 module.exports = {
   welcome,
@@ -622,4 +645,5 @@ module.exports = {
   bumpMentorRequest,
   skillsHelp,
   skillsSet,
+  stats
 };

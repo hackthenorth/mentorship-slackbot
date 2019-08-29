@@ -4,10 +4,6 @@ const FileSync = require("lowdb/adapters/FileSync");
 const adapter = new FileSync("storage/db.json");
 const db = low(adapter);
 
-const { CHANNEL_ID } = require("../config");
-
-const getChannelId = () => CHANNEL_ID;
-
 if (db.get("sessions").value() == null) {
   db.set("sessions", {}).write();
 }
@@ -85,7 +81,6 @@ const setOnline = (count) =>
     .write();
 
 module.exports = {
-  getChannelId,
   getSession,
   getSessionsToBump,
   clearSession,

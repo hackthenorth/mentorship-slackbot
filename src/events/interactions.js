@@ -1,7 +1,6 @@
 const Text = require("../text");
 
 const message = require("../actions/message");
-const { getMentorRequestChannelId } = require("../actions/channel");
 
 const { web } = require("../clients");
 
@@ -80,7 +79,8 @@ const handleDeleteRequest = payload => {
 const handleSurrenderRequest = payload => {
   const userId = payload.actions[0].value;
   const session = getSession(userId);
-  message.sessionSurrendered(session, 
+  message.sessionSurrendered(
+    session,
     updateSession(userId, {
       mentor_claim_ts: undefined,
       group_id: undefined,

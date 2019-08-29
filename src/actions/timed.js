@@ -8,6 +8,13 @@ const bumpSessions = () => {
   sessions.map(message.bumpMentorRequest);
 };
 
+const stats = () => {
+  const online = db.getOnline();
+  message.stats({
+    online
+  });
+};
+
 const init = () => {
   // bump dead requests every 30s
   setInterval(bumpSessions, 30000);

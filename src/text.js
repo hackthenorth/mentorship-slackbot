@@ -57,5 +57,12 @@ ${skills.join("\n")}`,
 \`\`\`
 ${skills.length > 0 ? `[\n  ${skills.join(",\n  ")}\n]` : `[None]`}
 \`\`\` 
+`,
+  STATS: (stats) => `Hello there! Your friendly neighborhood mentorship bot reporting in 😊.
+
+Currently, we have:
+😊 ${stats.online} mentors online
+
+Need a mentor? Send me a message and we'll get you help ASAP. Alternatively, feel free to drop by the mentorship hub in the ideas clinic (check the map)! 
 `
 };
