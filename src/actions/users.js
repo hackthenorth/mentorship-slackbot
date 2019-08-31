@@ -6,7 +6,7 @@ const { welcome } = require("./message");
 
 const db = require("../db");
 
-const { runnable } = require("./timed");
+const { runnable } = require("../date");
 
 // tries to add a member to our index
 const tryAdd = member => {
