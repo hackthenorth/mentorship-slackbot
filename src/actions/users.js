@@ -6,8 +6,11 @@ const { welcome } = require("./message");
 
 const db = require("../db");
 
+const { runnable } = require("./timed");
+
 // tries to add a member to our index
 const tryAdd = member => {
+  if (!runnable()) return;
   if (!member.is_bot && db.getSession(member.id) == null) {
     web.im.open({ user: member.id }).then(({ channel }) => {
       welcome(
