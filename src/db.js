@@ -79,6 +79,16 @@ const setOnline = (count) =>
   db
     .set("online", count)
     .write();
+    
+const getCreated = () => 
+db
+  .get("online")
+  .value() || 0;
+
+const bumpCreated = () =>
+db
+  .set("online", getOnline() + 1)
+  .write();
 
 module.exports = {
   getSession,
@@ -92,4 +102,6 @@ module.exports = {
   setMentorSkills,
   getOnline,
   setOnline,
+  getCreated,
+  bumpCreated,
 };

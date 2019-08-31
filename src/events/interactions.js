@@ -5,6 +5,7 @@ const message = require("../actions/message");
 const { web } = require("../clients");
 
 const {
+  bumpCreated,
   getSession,
   clearSession,
   getUserIdByThreadTs,
@@ -37,6 +38,7 @@ const handleMentorRequest = payload => {
     .then(({ ts }) =>
       message.confirmMentorRequest(updateSession(user.id, { ts }))
     );
+  bumpCreated();
 };
 
 const handleCancelRequest = ({ user: { id } }, respond) => {

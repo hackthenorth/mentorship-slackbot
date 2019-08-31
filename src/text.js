@@ -60,9 +60,10 @@ ${skills.length > 0 ? `[\n  ${skills.join(",\n  ")}\n]` : `[None]`}
 `,
   STATS: (stats) => `Hello there! Your friendly neighbourhood mentorship bot reporting in 😊
 
-Currently, we have:
+So far, we have:
+👋 ${stats.created} mentor requests created
 😊 ${stats.online} mentor${stats.online === 1 ? '' : 's'} online
 
-Need a mentor? Send me a message and we'll get you help ASAP. Alternatively, feel free to drop by the mentorship hub in the ideas clinic (check the map)! 
+Need a mentor? Send me a message and we'll get you help ASAP. Alternatively, feel free to drop by the mentorship hub in the E7 CND (check the map)! 
 `
 };
