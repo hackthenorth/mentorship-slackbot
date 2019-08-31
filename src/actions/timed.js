@@ -11,12 +11,12 @@ const bumpSessions = () => {
 };
 
 const stats = () => {
-  if (!runnable()) return;
-  const online = db.getOnline();
+  // if (!runnable()) return;
   const created = db.getCreated();
+  const online = db.getOnline();
   message.stats({
     created,
-    online,
+    online
   });
 };
 
@@ -31,7 +31,6 @@ const init = () => {
 
   // send stats every 2 hours
   interval(stats, 1000 * 60 * 60 * 2);
-  stats();
 };
 module.exports = {
   init,
