@@ -10,7 +10,6 @@ const { runnable } = require("../date");
 
 // tries to add a member to our index
 const tryAdd = member => {
-  if (!runnable()) return;
   if (!member.is_bot && db.getSession(member.id) == null) {
     web.im.open({ user: member.id }).then(({ channel }) => {
       welcome(
@@ -71,8 +70,9 @@ const rescan = () => {
   };
   Promise.all([getAll(), getMembers(CHANNEL_ID)]).then(
     ([members, mentorChannelIds]) => {
-      members.forEach(tryAdd);
       updateMentors(members, new Set(mentorChannelIds));
+      if (!runnable()) return;
+      members.forEach(tryAdd);
     }
   );
 };
