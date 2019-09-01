@@ -11,7 +11,7 @@ const bumpSessions = () => {
 };
 
 const stats = () => {
-  // if (!runnable()) return;
+  if (!runnable()) return;
   const created = db.getCreated();
   const online = db.getOnline();
   message.stats({
