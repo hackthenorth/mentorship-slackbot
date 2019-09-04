@@ -2,6 +2,7 @@ const { SKILLS } = require("../../config");
 
 const db = require("../db");
 const message = require("../actions/message");
+const timed = require("../actions/timed");
 
 const messageHandler = event => {
   // ignore bot messages
@@ -35,6 +36,8 @@ const messageHandler = event => {
           db.setMentorSkills(event.user, skillsObj);
           message.skillsSet(event.user, Object.keys(skillsObj));
         }
+      } else if (text === "!stats") {
+        timed.stats();
       } else {
         message.noUnderstandMentor(event.user);
       }

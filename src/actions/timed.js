@@ -34,5 +34,6 @@ const init = () => {
 };
 module.exports = {
   init,
-  runnable
+  runnable,
+  stats
 };
