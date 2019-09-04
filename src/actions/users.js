@@ -8,18 +8,35 @@ const db = require("../db");
 
 const { runnable } = require("../date");
 
+const tryWelcome = (member, session, mentorChannelIds, canWelcome) => {
+  if (!session.welcomed && (canWelcome || mentorChannelIds.has(member.id))) {
+    welcome(
+      db.updateSession(member.id, {
+        welcomed: true
+      })
+    );
+  }
+};
+
 // tries to add a member to our index
-const tryAdd = member => {
-  if (!member.is_bot && db.getSession(member.id) == null) {
+const tryAdd = (member, mentorChannelIds, canWelcome) => {
+  const session = db.getSession(member.id);
+  if (!member.is_bot && session == null) {
     web.im.open({ user: member.id }).then(({ channel }) => {
-      welcome(
+      tryWelcome(
+        member,
         db.updateSession(member.id, {
           id: member.id,
           channel: channel.id,
-          name: member.name
-        })
+          name: member.name,
+          welcomed: false
+        }),
+        mentorChannelIds,
+        canWelcome
       );
     });
+  } else if (session != null) {
+    tryWelcome(member, session, mentorChannelIds, canWelcome);
   }
 };
 
@@ -69,10 +86,11 @@ const rescan = () => {
       });
   };
   Promise.all([getAll(), getMembers(CHANNEL_ID)]).then(
-    ([members, mentorChannelIds]) => {
-      updateMentors(members, new Set(mentorChannelIds));
-      if (!runnable()) return;
-      members.forEach(tryAdd);
+    ([members, _mentorChannelIds]) => {
+      const mentorChannelIds = new Set(_mentorChannelIds);
+      updateMentors(members, mentorChannelIds);
+      const canWelcome = runnable();
+      members.forEach(member => tryAdd(member, mentorChannelIds, canWelcome));
     }
   );
 };
