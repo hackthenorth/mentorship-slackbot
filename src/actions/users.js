@@ -61,7 +61,7 @@ const updateMentors = (members, mentorChannelIds) => {
 const rescan = () => {
   const getMembers = (channel, cursor = undefined) => {
     return web.conversations
-      .members({ channel, cursor })
+      .members({ channel, cursor, limit: 500 })
       .then(({ members, response_metadata: { next_cursor } }) => {
         if (next_cursor === "") {
           return members;
@@ -74,7 +74,7 @@ const rescan = () => {
   };
   const getAll = (cursor = undefined) => {
     return web.users
-      .list({ cursor })
+      .list({ cursor, limit: 500 })
       .then(({ members, response_metadata: { next_cursor } }) => {
         if (next_cursor === "") {
           return members;
