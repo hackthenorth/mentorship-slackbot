@@ -76,11 +76,12 @@ const rescan = () => {
     return web.users
       .list({ cursor, limit: 500 })
       .then(({ members, response_metadata: { next_cursor } }) => {
+        const filtered_members = members.filter(m => !m.deleted);
         if (next_cursor === "") {
-          return members;
+          return filtered_members;
         } else {
           return getAll(next_cursor).then(nextMembers => {
-            return [...members, ...nextMembers];
+            return [...filtered_members, ...nextMembers];
           });
         }
       });
