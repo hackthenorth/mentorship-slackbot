@@ -29,8 +29,8 @@ const init = () => {
   interval(rescan, 1000 * 60 * 15);
   rescan();
 
-  // send stats every 6 hours
-  interval(stats, 1000 * 60 * 60 * 6);
+  // send stats every 3 hours
+  interval(stats, 1000 * 60 * 60 * 3);
 };
 module.exports = {
   init,
