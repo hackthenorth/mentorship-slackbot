@@ -1,10 +1,23 @@
 import config from "config";
 
-import db from "db";
-import message from "actions/message";
-import timed from "../actions/timed";
+import * as db from "db";
+import * as message from "actions/message";
+import * as timed from "../actions/timed";
+import { UserID, isActive } from "typings";
 
-const messageHandler = event => {
+interface Event {
+  bot_id?: string;
+  channel_type: string;
+  message?: {
+    bot_id?: string;
+  };
+  previous_message?: {
+    bot_id?: string;
+  };
+  text: string;
+  user: UserID;
+}
+const messageHandler = (event: Event) => {
   // ignore bot messages
   if (
     event.bot_id != null ||
@@ -45,7 +58,7 @@ const messageHandler = event => {
       // DM's
       const session = db.getSession(event.user);
       if (session != null) {
-        if (session.ts != null) {
+        if (isActive(session)) {
           message.noUnderstand(session);
         } else {
           message.noSession(session);

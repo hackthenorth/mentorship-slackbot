@@ -4,7 +4,7 @@
   "description": "## General overview",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/server.js",
+    "start": "NODE_PATH=./src ts-node src/server.ts",
     "serveo": "ssh -R test-mentorship:80:localhost:3000 serveo.net",
     "lint": "eslint --ext .jsx,.js,.tsx,.ts src/ --fix"
   },

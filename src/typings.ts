@@ -76,5 +76,7 @@ export function coerceEmpty(session: Session): EmptySession {
 }
 
 export interface Mentor {
-  skills: Skills;
+  skills: {
+    [key: string]: boolean;
+  };
 }

@@ -97,7 +97,12 @@ export const getMentor = (user: UserID) =>
     .get(user)
     .value();
 
-export const setMentorSkills = (user: UserID, skills: Skills) =>
+export const setMentorSkills = (
+  user: UserID,
+  skills: {
+    [key: string]: boolean;
+  }
+) =>
   db
     .get("mentors")
     // @ts-ignore

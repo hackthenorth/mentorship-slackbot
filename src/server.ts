@@ -1,16 +1,17 @@
-import http from "http";
+import * as http from "http";
 import bodyParser from "body-parser";
 import express from "express";
 import request from "request";
 
-const port = process.env.PORT || 3000;
-
+import config from "config";
 import { eventsClient, interactionsClient } from "clients";
 
-import interactions from "events/interactions";
-import message from "events/message";
+import * as interactions from "events/interactions";
+import * as message from "events/message";
 
-import config from "config";
+import * as timed from "actions/timed";
+
+const port = process.env.PORT || 3000;
 
 const app = express();
 
@@ -65,5 +66,4 @@ http.createServer(app).listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
 
-import timed from "actions/timed";
 timed.init();
