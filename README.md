@@ -19,6 +19,10 @@ Slackbot appears for all hackers, click button to ask for help. Bot asks for que
 - Deploy to Kubernetes
 - [Node Slack SDK](https://slack.dev/node-slack-sdk/)
 
+## Deployment
+**This bot is deployed manually with `skaffold run`. It will not autodeploy from master**
+When deploying make sure to manually delete the old deployment, otherwise the new one will forever wait for the volume claim
+
 ## Design
 
 https://www.figma.com/file/eX3wlW6akAQO6PQ6ApD618yA/Mentorship-Slackbot?node-id=1%3A497
