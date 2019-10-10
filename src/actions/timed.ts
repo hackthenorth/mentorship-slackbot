@@ -1,16 +1,15 @@
-const db = require("../db");
+import * as db from "db";
+import { runnable, interval } from "date";
 
-const { rescan } = require("./users");
-const message = require("./message");
-
-const { runnable, interval } = require("../date");
+import { rescan } from "./users";
+import * as message from "./message";
 
 const bumpSessions = () => {
   const sessions = db.getSessionsToBump();
   sessions.map(message.bumpMentorRequest);
 };
 
-const stats = () => {
+export const stats = () => {
   if (!runnable()) return;
   const created = db.getCreated();
   const online = db.getOnline();
@@ -20,7 +19,7 @@ const stats = () => {
   });
 };
 
-const init = () => {
+export const init = () => {
   // bump dead requests every 30s
   interval(bumpSessions, 30000);
   bumpSessions();
@@ -32,8 +31,5 @@ const init = () => {
   // send stats every 3 hours
   interval(stats, 1000 * 60 * 60 * 3);
 };
-module.exports = {
-  init,
-  runnable,
-  stats
-};
+
+export { runnable };

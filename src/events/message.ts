@@ -1,8 +1,8 @@
-const { SKILLS } = require("../../config");
+import config from "config";
 
-const db = require("../db");
-const message = require("../actions/message");
-const timed = require("../actions/timed");
+import db from "db";
+import message from "actions/message";
+import timed from "../actions/timed";
 
 const messageHandler = event => {
   // ignore bot messages
@@ -29,7 +29,7 @@ const messageHandler = event => {
         } else {
           const skillsObj = {};
           for (const part of parts) {
-            if (part in SKILLS) {
+            if (part in config.SKILLS) {
               skillsObj[part] = true;
             }
           }
@@ -57,4 +57,4 @@ const messageHandler = event => {
   }
 };
 
-module.exports = messageHandler;
+export const handle = messageHandler;

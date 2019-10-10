@@ -1,0 +1,27 @@
+{
+    "compilerOptions": {
+      "baseUrl": "src",
+      "outDir": "build/dist",
+      "module": "es2015",
+      "target": "es6",
+      "lib": ["es6"],
+      "sourceMap": true,
+      "moduleResolution": "node",
+      "resolveJsonModule": true,
+      "rootDir": "src",
+      "forceConsistentCasingInFileNames": true,
+      "noImplicitReturns": true,
+      "noImplicitThis": true,
+      "noImplicitAny": true,
+      "importHelpers": true,
+      "strictNullChecks": true,
+      "suppressImplicitAnyIndexErrors": true,
+      "skipLibCheck": true,
+      "allowSyntheticDefaultImports": true,
+      "strict": true,
+      "isolatedModules": true,
+      "noEmit": true,
+      "types": ["node"]
+    },
+    "include": ["src"]
+  }

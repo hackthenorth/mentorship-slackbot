@@ -1,19 +1,50 @@
-const { web } = require("../clients");
+import config from "config";
 
-const db = require("../db");
+import { webClient } from "clients";
+import * as db from "db";
+import Text from "text";
+import {
+  ActiveSession,
+  isClaimed,
+  TS,
+  Session,
+  ChannelID,
+  ClaimedSession,
+  UserID,
+  Skills
+} from "typings";
+import { ChatUpdateArguments, ChatPostMessageArguments } from "@slack/web-api";
 
-const {
-  BOT_USERNAME,
-  SKILLS,
-  CHANNEL_ID,
-  STATS_CHANNEL_ID
-} = require("../../config");
+export const { chat, dialog } = webClient;
 
-const Text = require("../text");
+export const MENTOR_GROUP_CHANNEL = config.CHANNEL_ID;
 
-const mentor_group_channel = CHANNEL_ID;
+type Context =
+  | "deleted"
+  | "canceled"
+  | "mentee"
+  | "mentee_completed"
+  | "intro"
+  | null;
 
-const buildMentorRequestActions = (session, context) => {
+function postMessage(value: ChatPostMessageArguments) {
+  return chat.postMessage({
+    as_user: true,
+    username: config.BOT_USERNAME,
+    ...value
+  });
+}
+function update(value: ChatUpdateArguments) {
+  return chat.update({
+    as_user: true,
+    ...value
+  });
+}
+
+export const buildMentorRequestActions = (
+  session: ActiveSession,
+  context: Context
+) => {
   switch (context) {
     case "deleted":
       return [
@@ -72,7 +103,7 @@ const buildMentorRequestActions = (session, context) => {
       return [];
     case null:
       return [
-        session.mentor != null
+        isClaimed(session)
           ? {
               type: "context",
               elements: [
@@ -112,55 +143,63 @@ const buildMentorRequestActions = (session, context) => {
   }
 };
 
-const buildMentorRequest = (session, context = null) => {
+export const buildMentorRequest = (
+  session: ActiveSession,
+  context: Context = null
+) => {
   const actions = buildMentorRequestActions(session, context);
-  let mentors = [];
+  let mentors: string[] = [];
   if (context == null && session.submission.skill != null) {
     const allMentors = db.getMentors();
     mentors = Object.keys(allMentors).filter(
       m => allMentors[m].skills[session.submission.skill] === true
     );
   }
-  return [
-    {
-      type: "divider"
-    },
-    {
-      type: "context",
-      block_id: "mentor_request",
-      elements: [
-        {
+
+  const title = Text.MENTOR_REQUEST_TITLE(
+    session.username,
+    session.submission,
+    mentors
+  );
+  const details = Text.MENTOR_REQUEST_DETAILS(session.submission);
+
+  return {
+    text: title + " " + details,
+    blocks: [
+      {
+        type: "divider"
+      },
+      {
+        type: "context",
+        block_id: "mentor_request",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: title
+          }
+        ]
+      },
+      {
+        type: "section",
+        text: {
           type: "mrkdwn",
-          text: Text.MENTOR_REQUEST_TITLE(
-            session.username,
-            session.submission,
-            mentors
-          )
+          text: details
         }
-      ]
-    },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: Text.MENTOR_REQUEST_DETAILS(session.submission)
-      }
-    },
-    ...actions
-  ];
+      },
+      ...actions
+    ]
+  };
 };
 
-const postMentorRequest = session => {
-  return web.chat.postMessage({
-    channel: mentor_group_channel,
-    blocks: buildMentorRequest(session),
-    as_user: true,
-    username: BOT_USERNAME
+export const postMentorRequest = (session: ActiveSession) => {
+  return postMessage({
+    channel: MENTOR_GROUP_CHANNEL,
+    ...buildMentorRequest(session)
   });
 };
 
-const openMentorRequestDialog = (trigger_id, ts) => {
-  web.dialog.open({
+export const openMentorRequestDialog = (trigger_id: string, ts: TS) => {
+  dialog.open({
     trigger_id,
     dialog: {
       callback_id: "mentor_request",
@@ -180,8 +219,8 @@ const openMentorRequestDialog = (trigger_id, ts) => {
           name: "skill",
           type: "select",
           optional: true,
-          options: Object.keys(SKILLS).map(value => ({
-            label: SKILLS[value],
+          options: Object.keys(config.SKILLS).map(value => ({
+            label: config.SKILLS[value],
             value
           }))
         },
@@ -196,42 +235,40 @@ const openMentorRequestDialog = (trigger_id, ts) => {
   });
 };
 
-const confirmMentorRequest = session => {
-  web.chat.update({
+export const confirmMentorRequest = (session: ActiveSession) => {
+  update({
     channel: session.channel,
     ts: session.mentee_ts,
-    blocks: buildMentorRequest(session, "mentee"),
-    as_user: true,
-    username: BOT_USERNAME
+    ...buildMentorRequest(session, "mentee")
   });
 };
 
-const bumpMentorRequest = session => {
-  web.chat
+export const bumpMentorRequest = (session: ActiveSession) => {
+  chat
     .getPermalink({
-      channel: mentor_group_channel,
+      channel: MENTOR_GROUP_CHANNEL,
       message_ts: session.ts
     })
     .then(({ permalink }) => {
-      web.chat.postMessage({
-        channel: mentor_group_channel,
+      const text = Text.BUMP(permalink as string, session);
+      postMessage({
+        channel: MENTOR_GROUP_CHANNEL,
+        text,
         blocks: [
           {
             type: "section",
             text: {
               type: "mrkdwn",
-              text: Text.BUMP(permalink, session)
+              text
             }
           }
         ],
-        unfurl_links: true,
-        as_user: true,
-        username: BOT_USERNAME
+        unfurl_links: true
       });
     });
 };
 
-const requestActionBlock = {
+export const requestActionBlock = {
   type: "actions",
   elements: [
     {
@@ -246,16 +283,17 @@ const requestActionBlock = {
   ]
 };
 
-const welcome = session => {
-  web.chat.postMessage({
+export const welcome = (session: Session) => {
+  const text = Text.WELCOME(session.name);
+  postMessage({
     channel: session.channel,
-    text: Text.WELCOME(session.name),
+    text,
     blocks: [
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: Text.WELCOME(session.name)
+          text
         }
       },
       {
@@ -266,62 +304,53 @@ const welcome = session => {
         }
       },
       requestActionBlock
-    ],
-    as_user: true,
-    username: BOT_USERNAME
+    ]
   });
 };
 
-const noSession = ({ channel }) => {
-  web.chat
-    .postMessage({
-      channel,
-      text: Text.NO_SESSION,
-      blocks: [
-        {
-          type: "section",
-          text: { type: "mrkdwn", text: Text.NO_SESSION }
-        },
-        requestActionBlock
-      ],
-      as_user: true,
-      username: BOT_USERNAME
-    })
-    .catch(console.error);
+export const noSession = ({ channel }: Session) => {
+  const text = Text.NO_SESSION;
+  postMessage({
+    channel,
+    text,
+    blocks: [
+      {
+        type: "section",
+        text: { type: "mrkdwn", text }
+      },
+      requestActionBlock
+    ]
+  }).catch(console.error);
 };
-const noUnderstand = ({ channel }) => {
-  web.chat
-    .postMessage({
-      channel,
-      blocks: [
-        {
-          type: "section",
-          text: { type: "mrkdwn", text: Text.NO_UNDERSTAND }
-        }
-      ],
-      as_user: true,
-      username: BOT_USERNAME
-    })
-    .catch(console.error);
+export const noUnderstand = ({ channel }: Session) => {
+  const text = Text.NO_UNDERSTAND;
+  postMessage({
+    channel,
+    text,
+    blocks: [
+      {
+        type: "section",
+        text: { type: "mrkdwn", text }
+      }
+    ]
+  }).catch(console.error);
 };
-const noUnderstandMentor = channel => {
-  web.chat
-    .postMessage({
-      channel,
-      blocks: [
-        {
-          type: "section",
-          text: { type: "mrkdwn", text: Text.NO_UNDERSTAND_MENTOR }
-        }
-      ],
-      as_user: true,
-      username: BOT_USERNAME
-    })
-    .catch(console.error);
+export const noUnderstandMentor = (channel: ChannelID) => {
+  const text = Text.NO_UNDERSTAND_MENTOR;
+  postMessage({
+    channel,
+    text,
+    blocks: [
+      {
+        type: "section",
+        text: { type: "mrkdwn", text }
+      }
+    ]
+  }).catch(console.error);
 };
 
-const needMentor = ({ channel }) => {
-  web.chat.postMessage({
+export const needMentor = ({ channel }: Session) => {
+  postMessage({
     channel: channel,
     text: Text.NEED_MENTOR,
     blocks: [
@@ -333,47 +362,47 @@ const needMentor = ({ channel }) => {
         }
       },
       requestActionBlock
-    ],
-    as_user: true,
-    username: BOT_USERNAME
+    ]
   });
 };
 
-const sessionIntroduction = session => {
+export const sessionIntroduction = (session: ClaimedSession) => {
+  const { blocks } = buildMentorRequest(session, "intro");
+  const introText = Text.SESSION_INTRODUCTION(session);
   // update the new channel
-  web.chat.postMessage({
+  postMessage({
     channel: session.group_id,
+    text: introText,
     blocks: [
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: Text.SESSION_INTRODUCTION(session)
+          text: introText
         }
       },
-      ...buildMentorRequest(session, "intro")
-    ],
-    as_user: true
+      ...blocks
+    ]
   });
 
   // update the existing user message
-  web.chat.update({
-    channel: mentor_group_channel,
+  update({
+    channel: MENTOR_GROUP_CHANNEL,
     ts: session.ts,
-    blocks: buildMentorRequest(session),
-    as_user: true,
-    username: BOT_USERNAME
+    ...buildMentorRequest(session)
   });
 
   // let the mentor know
-  return web.chat.postMessage({
+  const mentorText = Text.SESSION_CLAIMED(session);
+  return postMessage({
     channel: session.mentor,
+    text: mentorText,
     blocks: [
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: Text.SESSION_CLAIMED(session)
+          text: mentorText
         }
       },
       {
@@ -410,240 +439,209 @@ const sessionIntroduction = session => {
           }
         ]
       }
-    ],
-    as_user: true
+    ]
   });
 };
 
-const sessionSurrendered = (session, newSession) => {
-  web.chat.update({
+export const sessionSurrendered = (
+  session: ClaimedSession,
+  newSession: ActiveSession
+) => {
+  const mentorText = Text.SESSION_SURRENDERED_MENTOR;
+  update({
     channel: session.mentor_channel,
     ts: session.mentor_claim_ts,
+    text: mentorText,
     blocks: [
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: Text.SESSION_SURRENDERED_MENTOR
+          text: mentorText
         }
       }
-    ],
-    as_user: true
+    ]
   });
-  web.chat.update({
-    channel: mentor_group_channel,
+  update({
+    channel: MENTOR_GROUP_CHANNEL,
     ts: session.ts,
-    blocks: buildMentorRequest(newSession),
-    as_user: true,
-    username: BOT_USERNAME
+    ...buildMentorRequest(newSession)
   });
-  web.chat
+  chat
     .getPermalink({
-      channel: mentor_group_channel,
+      channel: MENTOR_GROUP_CHANNEL,
       message_ts: session.ts
     })
     .then(({ permalink }) => {
-      web.chat.postMessage({
-        channel: mentor_group_channel,
+      const text = Text.BUMP_SURRENDER(permalink as string, session);
+      postMessage({
+        channel: MENTOR_GROUP_CHANNEL,
+        text,
         blocks: [
           {
             type: "section",
             text: {
               type: "mrkdwn",
-              text: Text.BUMP_SURRENDER(permalink, session)
+              text
             }
           }
         ],
-        unfurl_links: true,
-        as_user: true,
-        username: BOT_USERNAME
+        unfurl_links: true
       });
     });
-  return web.chat.postMessage({
+  const text = Text.SESSION_SURRENDERED(session);
+  return postMessage({
     channel: session.group_id,
+    text,
     blocks: [
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: Text.SESSION_SURRENDERED(session)
+          text
         }
       }
-    ],
-    as_user: true
+    ]
   });
 };
 
-const sessionCompleted = session => {
-  web.chat.update({
+export const sessionCompleted = (session: ClaimedSession) => {
+  const mentorText = Text.SESSION_COMPLETED_MENTOR;
+  update({
     channel: session.mentor_channel,
     ts: session.mentor_claim_ts,
+    text: mentorText,
     blocks: [
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: Text.SESSION_COMPLETED_MENTOR
+          text: mentorText
         }
       }
-    ],
-    as_user: true
+    ]
   });
-  web.chat.update({
+  update({
     channel: session.channel,
     ts: session.mentee_ts,
-    blocks: buildMentorRequest(session, "mentee_completed"),
-    as_user: true,
-    username: BOT_USERNAME
+    ...buildMentorRequest(session, "mentee_completed")
   });
   noSession(session);
-  return web.chat.postMessage({
+  const text = Text.SESSION_COMPLETED(session);
+  return postMessage({
     channel: session.group_id,
+    text,
     blocks: [
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: Text.SESSION_COMPLETED(session)
+          text
         }
       }
-    ],
-    as_user: true
+    ]
   });
 };
 
-const postSessionCanceled = session => {
-  web.chat.update({
+export const postSessionCanceled = (session: ActiveSession) => {
+  update({
     channel: session.channel,
     ts: session.mentee_ts,
-    blocks: buildMentorRequest(session, "canceled"),
-    as_user: true,
-    username: BOT_USERNAME
+    ...buildMentorRequest(session, "canceled")
   });
-  web.chat.update({
-    channel: mentor_group_channel,
+  update({
+    channel: MENTOR_GROUP_CHANNEL,
     ts: session.ts,
-    blocks: buildMentorRequest(session, "canceled"),
-    as_user: true,
-    username: BOT_USERNAME
+    ...buildMentorRequest(session, "canceled")
   });
 };
 
-const postSessionDeleted = session => {
-  const { channel, mentor_channel, mentee_ts, mentor_claim_ts, ts } = session;
-  web.chat.update({
-    channel: mentor_group_channel,
+export const postSessionDeleted = (session: ActiveSession) => {
+  const { channel, mentee_ts, ts } = session;
+  update({
+    channel: MENTOR_GROUP_CHANNEL,
     ts: ts,
-    blocks: buildMentorRequest(session, "deleted"),
-    as_user: true,
-    username: BOT_USERNAME
+    ...buildMentorRequest(session, "deleted")
   });
-  if (mentor_claim_ts != null) {
-    web.chat.update({
-      channel: mentor_channel,
-      ts: mentor_claim_ts,
+  if (isClaimed(session)) {
+    const mentorText = Text.SESSION_DELETED_MENTOR;
+    update({
+      channel: session.mentor_channel,
+      ts: session.mentor_claim_ts,
+      text: mentorText,
       blocks: [
         {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: Text.SESSION_DELETED_MENTOR
+            text: mentorText
           }
         }
-      ],
-      as_user: true
+      ]
     });
   }
-  web.chat.update({
+  chat.update({
     channel,
     ts: mentee_ts,
-    blocks: buildMentorRequest(session, "deleted"),
-    as_user: true,
-    username: BOT_USERNAME
+    ...buildMentorRequest(session, "deleted")
   });
-  web.chat
-    .postMessage({
-      channel,
-      text: Text.SESSION_DELETED,
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: Text.SESSION_DELETED
-          }
-        }
-      ],
-      as_user: true
-    })
-    .then(() => needMentor(session));
-};
-
-const skillsHelp = channel => {
-  web.chat
-    .postMessage({
-      channel,
-      blocks: [
-        {
-          type: "section",
-          text: { type: "mrkdwn", text: Text.SKILLS_HELP(Object.keys(SKILLS)) }
-        }
-      ],
-      as_user: true,
-      username: BOT_USERNAME
-    })
-    .catch(console.error);
-};
-
-const skillsSet = (channel, newSkills) => {
-  web.chat
-    .postMessage({
-      channel,
-      blocks: [
-        {
-          type: "section",
-          text: { type: "mrkdwn", text: Text.SKILLS_SET(newSkills) }
-        }
-      ],
-      as_user: true,
-      username: BOT_USERNAME
-    })
-    .catch(console.error);
-};
-
-const stats = stats => {
-  web.chat.postMessage({
-    channel: STATS_CHANNEL_ID,
+  const text = Text.SESSION_DELETED;
+  postMessage({
+    channel,
+    text,
     blocks: [
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: Text.STATS(stats)
+          text
         }
       }
-    ],
-    as_user: true,
-    username: BOT_USERNAME
-  });
+    ]
+  }).then(() => needMentor(session));
 };
 
-module.exports = {
-  welcome,
-  needMentor,
-  noSession,
-  noUnderstand,
-  noUnderstandMentor,
-  openMentorRequestDialog,
-  confirmMentorRequest,
-  postMentorRequest,
-  postSessionDeleted,
-  postSessionCanceled,
-  sessionIntroduction,
-  sessionSurrendered,
-  sessionCompleted,
-  bumpMentorRequest,
-  skillsHelp,
-  skillsSet,
-  stats
+export const skillsHelp = (channel: ChannelID) => {
+  const text = Text.SKILLS_HELP(Object.keys(config.SKILLS));
+  postMessage({
+    channel,
+    text,
+    blocks: [
+      {
+        type: "section",
+        text: { type: "mrkdwn", text }
+      }
+    ]
+  }).catch(console.error);
+};
+
+export const skillsSet = (channel: UserID, newSkills: Skills) => {
+  const text = Text.SKILLS_SET(newSkills);
+  postMessage({
+    channel,
+    text,
+    blocks: [
+      {
+        type: "section",
+        text: { type: "mrkdwn", text }
+      }
+    ]
+  }).catch(console.error);
+};
+
+export const stats = (stats: { created: number; online: number }) => {
+  const text = Text.STATS(stats);
+  postMessage({
+    channel: config.STATS_CHANNEL_ID,
+    text,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text
+        }
+      }
+    ]
+  });
 };
