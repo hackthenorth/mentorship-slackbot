@@ -1,5 +1,7 @@
-const start = new Date("2019-09-13T21:00:00-0400");
-const end = new Date("2019-09-15T12:00:00-0400");
+import config from "config";
+
+const start = new Date(config.EVENT_START);
+const end = new Date(config.EVENT_END);
 
 export const runnable = () => {
   const date = new Date();
