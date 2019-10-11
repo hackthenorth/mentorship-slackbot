@@ -102,14 +102,18 @@ export const buildMentorRequestActions = (
     case "intro":
       return [];
     case null:
+      // Can't use `isClaimed` because `mentor_claim_ts`
+      // hasn't been updated yet (see interactions.ts)
       return [
-        isClaimed(session)
+        (session as ClaimedSession).group_id != null
           ? {
               type: "context",
               elements: [
                 {
                   type: "mrkdwn",
-                  text: Text.MENTOR_REQUEST_CLAIMED(session.mentor)
+                  text: Text.MENTOR_REQUEST_CLAIMED(
+                    (session as ClaimedSession).mentor
+                  )
                 }
               ]
             }
