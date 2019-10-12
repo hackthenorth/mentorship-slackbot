@@ -1,5 +1,3 @@
-import { serializeError } from "serialize-error";
-
 import Config from "config";
 import {
   ActiveSession,
@@ -204,7 +202,7 @@ ${skills.length > 0 ? `[\n  ${skills.join(",\n  ")}\n]` : `[None]`}
 export function reportError(e: any) {
   const text = `The bot has encountered an error (cc ${Config.MENTOR_LEAD}): \n
 \`\`\`
-${serializeError(e)}
+${e.valueOf()}
 \`\`\``;
   return send({
     channel: MENTOR_CHANNEL,
