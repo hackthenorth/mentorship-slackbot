@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hackathon/mentorship-slackbot.git"
+    "url": "git+https://github.com/hackthenorth/mentorship-slackbot.git"
   },
   "author": "Hack the North",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/hackathon/mentorship-slackbot/issues"
+    "url": "https://github.com/hackthenorth/mentorship-slackbot/issues"
   },
-  "homepage": "https://github.com/hackathon/mentorship-slackbot#readme",
+  "homepage": "https://github.com/hackthenorth/mentorship-slackbot#readme",
   "dependencies": {
     "@slack/events-api": "^2.3.0",
     "@slack/interactive-messages": "^1.3.0",
