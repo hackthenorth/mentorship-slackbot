@@ -37,9 +37,7 @@ export function updateRequest(
 }
 
 export function welcome(session: Session) {
-  const text = `Hi ${
-    session.name ? session.name : "hacker"
-  }, welcome to Hack the North 2019! :wave:
+  const text = `Hi <@${session.id}>, welcome to ${Config.EVENT_NAME}! :wave:
 
   I’m Mentorship Bot, here to help you
   find a mentor at any time during the

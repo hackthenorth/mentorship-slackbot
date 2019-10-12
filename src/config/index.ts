@@ -1,4 +1,9 @@
 export default {
+  // Name of your event
+  EVENT_NAME: "Hack the North 2019",
+  // Location of mentor hub
+  MENTOR_HUB: "E7 CND",
+
   // Channel ID of your private "mentors" slack group
   MENTOR_CHANNEL: "GMXXXXXX",
   // Channel ID of where to post stats updates
