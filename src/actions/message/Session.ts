@@ -1,5 +1,5 @@
 import { ClaimedSession } from "typings";
-import { buildSimpleBlock, buildRequestBlock, send } from "./util";
+import { buildSimpleBlock, buildRequestBlock, send } from "./utils";
 
 export function introduce(session: ClaimedSession) {
   const { blocks } = buildRequestBlock(session, "intro");

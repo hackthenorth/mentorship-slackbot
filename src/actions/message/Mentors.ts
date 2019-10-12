@@ -16,7 +16,7 @@ import {
   RequestSession,
   update,
   send
-} from "./util";
+} from "./utils";
 
 const { MENTOR_CHANNEL } = Config;
 

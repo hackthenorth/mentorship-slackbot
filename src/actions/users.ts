@@ -2,6 +2,7 @@ import Config from "config";
 
 import { webClient } from "clients";
 import * as db from "db";
+import { handle } from "utils";
 
 import { runnable } from "date";
 import * as Message from "actions/message";
@@ -22,12 +23,13 @@ const tryWelcome = (
   canWelcome: boolean
 ) => {
   if (!session.welcomed && (canWelcome || mentorChannelIds.has(member.id))) {
-    Message.Mentee.welcome(
+    return Message.Mentee.welcome(
       db.updateSession(member.id, {
         welcomed: true
       })
     );
   }
+  return Promise.resolve(null);
 };
 
 // tries to add a member to our index
@@ -39,8 +41,8 @@ export const tryAdd = (
   const session = db.getSession(member.id);
   if (!member.is_bot && session == null) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    webClient.im.open({ user: member.id }).then(({ channel }: any) => {
-      tryWelcome(
+    return webClient.im.open({ user: member.id }).then(({ channel }: any) => {
+      return tryWelcome(
         member,
         db.updateSession(member.id, {
           id: member.id,
@@ -53,8 +55,9 @@ export const tryAdd = (
       );
     });
   } else if (session != null) {
-    tryWelcome(member, session, mentorChannelIds, canWelcome);
+    return tryWelcome(member, session, mentorChannelIds, canWelcome);
   }
+  return Promise.resolve(null);
 };
 
 const updateMentors = (members: Member[], mentorChannelIds: Set<UserID>) => {
@@ -67,17 +70,17 @@ const updateMentors = (members: Member[], mentorChannelIds: Set<UserID>) => {
       };
     }
   }
-  Promise.all(
+  db.setMentors(mentors);
+  return Promise.all(
     Object.keys(mentors).map(user => webClient.users.getPresence({ user }))
   )
     .then(
       results => results.filter(({ presence }) => presence === "active").length
     )
     .then(db.setOnline);
-  db.setMentors(mentors);
 };
 
-export const rescan = () => {
+export const rescan = handle(() => {
   const getMembers = (
     channel: ChannelID,
     cursor: string | undefined = undefined
@@ -114,7 +117,7 @@ export const rescan = () => {
         }
       });
   };
-  Promise.all([getAll(), getMembers(Config.MENTOR_CHANNEL)]).then(
+  return Promise.all([getAll(), getMembers(Config.MENTOR_CHANNEL)]).then(
     ([members, _mentorChannelIds]) => {
       const mentorChannelIds = new Set(_mentorChannelIds);
       updateMentors(members, mentorChannelIds);
@@ -122,4 +125,4 @@ export const rescan = () => {
       members.forEach(member => tryAdd(member, mentorChannelIds, canWelcome));
     }
   );
-};
+});

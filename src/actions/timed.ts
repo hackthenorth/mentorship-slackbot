@@ -1,20 +1,21 @@
 import * as db from "db";
 import { runnable, interval } from "date";
+import { handle } from "utils";
 
 import { rescan } from "./users";
 import * as Message from "./message";
 
-const bumpSessions = () => {
+const bumpSessions = handle(() => {
   const sessions = db.getSessionsToBump();
-  sessions.map(Message.Mentors.bump);
-};
+  return Promise.all(sessions.map(Message.Mentors.bump));
+});
 
-export const stats = () => {
-  if (!runnable()) return;
+export const stats = handle(() => {
+  if (!runnable()) return Promise.resolve(null);
   const created = db.getCreated();
   const online = db.getOnline();
   return Message.Stats.update(created, online);
-};
+});
 
 export const init = () => {
   // bump dead requests every 30s

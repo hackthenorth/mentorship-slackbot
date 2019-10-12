@@ -8,7 +8,7 @@ import {
   RequestSession,
   update,
   send
-} from "./util";
+} from "./utils";
 
 const requestActionBlock = {
   type: "actions",

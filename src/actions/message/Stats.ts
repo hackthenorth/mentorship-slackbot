@@ -1,5 +1,5 @@
 import Config from "config";
-import { buildSimpleBlock, send } from "./util";
+import { buildSimpleBlock, send } from "./utils";
 
 export function update(created: number, online: number) {
   const text = `Hello there! Your friendly neighbourhood mentorship bot reporting in 😊
