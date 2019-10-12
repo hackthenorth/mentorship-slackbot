@@ -21,6 +21,7 @@ Welcome Message | Request Popup
 6. Bot pings a stats channel (e.g. #general) every 3 hours with updates and how to get in touch for help
 ![Stats](docs/stats.png)
 7. Old, unclaimed requests are automatically bumped every 10 min if nobody has responded to it
+![Bump](docs/bump.png)
 
 ### Skills
 1. Mentors can set their skills with the bot through the `!skills` command in DM
