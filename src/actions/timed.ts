@@ -2,21 +2,18 @@ import * as db from "db";
 import { runnable, interval } from "date";
 
 import { rescan } from "./users";
-import * as message from "./message";
+import * as Message from "./message";
 
 const bumpSessions = () => {
   const sessions = db.getSessionsToBump();
-  sessions.map(message.bumpMentorRequest);
+  sessions.map(Message.Mentors.bump);
 };
 
 export const stats = () => {
   if (!runnable()) return;
   const created = db.getCreated();
   const online = db.getOnline();
-  message.stats({
-    created,
-    online
-  });
+  return Message.Stats.update(created, online);
 };
 
 export const init = () => {

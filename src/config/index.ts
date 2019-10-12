@@ -1,13 +1,16 @@
 export default {
   // Channel ID of your private "mentors" slack group
-  CHANNEL_ID: "GMXXXXXX",
+  MENTOR_CHANNEL: "GMXXXXXX",
   // Channel ID of where to post stats updates
-  STATS_CHANNEL_ID: "CMXXXXXX",
+  STATS_CHANNEL: "CMXXXXXX",
 
   // Username of your bot
   BOT_USERNAME: "mentorship_bot",
   // Access token for your bot (should start with xoxb)
   BOT_ACCESS_TOKEN: "xoxb-abcdefghijk-123456789-a1b2c3d4e5",
+
+  // Mentor lead slack username
+  MENTOR_LEAD: `@bonnie`,
 
   // Signing secret of your app
   SIGNING_SECRET: "abcdefhijklmnopqrstuvwxyz",

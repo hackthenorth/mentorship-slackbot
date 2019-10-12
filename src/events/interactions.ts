@@ -1,8 +1,8 @@
 import SlackMessageAdapter from "@slack/interactive-messages/dist/adapter";
 
-import Text from "text";
-import * as message from "actions/message";
+import * as Message from "actions/message";
 import { webClient } from "clients";
+import { handle } from "utils";
 
 import {
   bumpCreated,
@@ -19,9 +19,10 @@ import {
   TS,
   coerceActive,
   coerceClaimed,
-  ActiveSession,
   ClaimedSession,
-  isActive
+  isActive,
+  coerceEmpty,
+  isClaimed
 } from "typings";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,20 +49,21 @@ interface DialogPayload extends ActionPayload {
   submission: Submission;
 }
 
-const handleNeedMentor = (payload: MessagePayload, respond: Respond) => {
+function needMentor(payload: MessagePayload, respond: Respond) {
   // check for existing session
   const session = getSession(payload.user.id);
   if (isActive(session)) {
-    respond({
-      text: Text.SESSION_ALREADY_ACTIVE
-    });
+    return Message.Mentee.alreadyActive(respond);
   } else {
     // send problem prompt text
-    message.openMentorRequestDialog(payload.trigger_id, payload.message.ts);
+    return Message.Mentee.openRequestDialog(
+      payload.trigger_id,
+      payload.message.ts
+    );
   }
-};
+}
 
-const handleMentorRequest = (payload: DialogPayload) => {
+function mentorRequest(payload: DialogPayload) {
   const { user, channel, submission, state } = payload;
   const session = updateSession(user.id, {
     username: user.name,
@@ -69,44 +71,51 @@ const handleMentorRequest = (payload: DialogPayload) => {
     mentee_ts: state,
     submission
   });
-  message
-    .postMentorRequest(session as ActiveSession)
-    .then(({ ts }) =>
-      message.confirmMentorRequest(
-        coerceActive(updateSession(user.id, { ts: ts as TS }))
-      )
-    );
   bumpCreated();
-};
+  return Message.Mentors.sendRequest(session).then(({ ts }) =>
+    Message.Mentee.updateRequest(
+      coerceActive(updateSession(user.id, { ts: ts as TS }))
+    )
+  );
+}
 
-const handleCancelRequest = ({ user: { id } }: MessagePayload) => {
+function cancelRequest({ user: { id } }: MessagePayload) {
   const session = coerceActive(getSession(id), true);
-  message.postSessionCanceled(session);
-  clearSession(id);
-  message.needMentor(session);
-};
+  return Promise.all([
+    Message.Mentee.updateRequest(session, "canceled"),
+    Message.Mentors.updateRequest(session, "canceled"),
+    Message.Mentee.needMentor(coerceEmpty(clearSession(id)))
+  ]);
+}
 
-const handleClaimRequest = (payload: MessagePayload) => {
+function claimRequest(payload: MessagePayload) {
   const userId = getUserIdByThreadTs(payload.message.ts);
 
   if (userId === undefined)
     throw new Error(`Undefined user_id for ts '${payload.message.ts}'`);
 
-  const session = updateSession(userId, {
+  const { mentor } = updateSession(userId, {
     mentor: payload.user.id
-  }) as ClaimedSession;
+  });
 
-  webClient.conversations
-    .open({
-      users: [session.id, session.mentor].join(",")
-    })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .then(({ channel: { id } }: any) => {
-      message
-        .sessionIntroduction(updateSession(session.id, {
-          group_id: id
-        }) as ClaimedSession)
-        .then(({ ts, channel }) =>
+  return (
+    webClient.conversations
+      .open({
+        users: [userId, mentor].join(",")
+      })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .then(({ channel }: any) => {
+        const session = updateSession(userId, {
+          group_id: channel.id
+        }) as ClaimedSession;
+        return Promise.all([
+          // update the new channel
+          Message.Session.introduce(session),
+          // update the existing user message
+          Message.Mentors.updateRequest(session),
+          // let the mentor know
+          Message.Mentors.claimControls(session)
+        ]).then(([, , { ts, channel }]) =>
           coerceClaimed(
             updateSession(userId, {
               mentor_claim_ts: ts as TS,
@@ -114,48 +123,81 @@ const handleClaimRequest = (payload: MessagePayload) => {
             })
           )
         );
-    });
-};
+      })
+  );
+}
 
-const handleDeleteRequest = (payload: MessagePayload) => {
+function deleteRequest(payload: MessagePayload) {
   const userId = payload.actions[0].value;
   const session = coerceActive(getSession(userId), true);
-  message.postSessionDeleted(session);
-  clearSession(userId);
-};
+  return Promise.all([
+    // Update mentors channel that it has been deleted
+    Message.Mentors.updateRequest(session, "deleted"),
+    // Update the mentor controls if it has been claimed
+    isClaimed(session)
+      ? Message.Mentors.deleteControls(session)
+      : Promise.resolve(null),
+    // Update the mentee session
+    Message.Mentee.updateRequest(session, "deleted"),
+    // Let the mentee know it's been deleted, then ask
+    // if they need a new request
+    Message.Mentee.deleted(session).then(() =>
+      Message.Mentee.needMentor(session)
+    ),
+    // Clear the session
+    Promise.resolve(clearSession(userId))
+  ]);
+}
 
-const handleSurrenderRequest = (payload: MessagePayload) => {
+function surrenderRequest(payload: MessagePayload) {
   const userId = payload.actions[0].value;
   const session = coerceClaimed(getSession(userId));
-  message.sessionSurrendered(
-    session,
-    coerceActive(
-      updateSession(userId, {
-        mentor_claim_ts: undefined,
-        group_id: undefined,
-        mentor: undefined
-      })
-    )
+  const newSession = coerceActive(
+    updateSession(userId, {
+      mentor_claim_ts: undefined,
+      group_id: undefined,
+      mentor: undefined
+    })
   );
-};
+  return Promise.all([
+    // Update mentor controls as "surrendered"
+    Message.Mentors.surrenderControls(session),
+    // Let the channel know the mentor has surrendered
+    Message.Session.surrender(session),
+    // Update the request in the mentors channel
+    Message.Mentors.updateRequest(newSession),
+    // Let the mentors channel know it's been surrendered
+    Message.Mentors.surrenderBump(newSession)
+  ]);
+}
 
-const handleCompleteRequest = (payload: MessagePayload) => {
+function completeRequest(payload: MessagePayload) {
   const userId = payload.actions[0].value;
   const session = coerceClaimed(getSession(userId));
-  message.sessionCompleted(session).then(() => {
-    clearSession(userId);
-  });
-};
+  return Promise.all([
+    // Update the controls for the mentor
+    Message.Mentors.completeControls(session),
+    // Let the mentee know their request has been completed
+    Message.Mentee.updateRequest(session, "mentee_completed"),
+    // Ask the mentee if they need a new request
+    Message.Mentee.noSession(session),
+    // Update the mentor channel to say it's complete
+    Message.Session.complete(session)
+  ]).then(() => coerceEmpty(clearSession(userId)));
+}
 
 export const bootstrap = (interactions: SlackMessageAdapter) => {
-  interactions.action({ actionId: "need_mentor" }, handleNeedMentor);
-  interactions.action({ callbackId: "mentor_request" }, handleMentorRequest);
-  interactions.action({ actionId: "cancel_request" }, handleCancelRequest);
-  interactions.action({ actionId: "claim_request" }, handleClaimRequest);
-  interactions.action({ actionId: "delete_request" }, handleDeleteRequest);
+  interactions.action({ actionId: "need_mentor" }, handle(needMentor));
+  interactions.action({ callbackId: "mentor_request" }, handle(mentorRequest));
+  interactions.action({ actionId: "cancel_request" }, handle(cancelRequest));
+  interactions.action({ actionId: "claim_request" }, handle(claimRequest));
+  interactions.action({ actionId: "delete_request" }, handle(deleteRequest));
   interactions.action(
     { actionId: "surrender_request" },
-    handleSurrenderRequest
+    handle(surrenderRequest)
   );
-  interactions.action({ actionId: "complete_request" }, handleCompleteRequest);
+  interactions.action(
+    { actionId: "complete_request" },
+    handle(completeRequest)
+  );
 };

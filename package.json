@@ -37,6 +37,7 @@
     "moniker": "^0.1.2",
     "prettier": "^1.18.2",
     "request": "^2.88.0",
+    "serialize-error": "^5.0.0",
     "ts-node": "^8.4.1",
     "tslib": "^1.10.0",
     "typescript": "^3.6.4"

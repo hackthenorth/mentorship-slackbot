@@ -1,7 +1,7 @@
 import config from "config";
 
 import * as db from "db";
-import * as message from "actions/message";
+import * as Message from "actions/message";
 import * as timed from "../actions/timed";
 import { UserID, isActive } from "typings";
 
@@ -27,6 +27,7 @@ const messageHandler = (event: Event) => {
     return;
   }
 
+  // We only handle DM's
   if (event.channel_type === "im") {
     const mentor = db.getMentor(event.user);
     if (mentor != null) {
@@ -38,7 +39,7 @@ const messageHandler = (event: Event) => {
           .map(s => s.trim())
           .filter(s => s.length > 0);
         if (parts.length === 1 && parts[0] === "help") {
-          message.skillsHelp(event.user);
+          Message.Mentors.skillsHelp(event.user);
         } else {
           const skillsObj = {};
           for (const part of parts) {
@@ -47,24 +48,23 @@ const messageHandler = (event: Event) => {
             }
           }
           db.setMentorSkills(event.user, skillsObj);
-          message.skillsSet(event.user, Object.keys(skillsObj));
+          Message.Mentors.skillsSet(event.user, Object.keys(skillsObj));
         }
       } else if (text === "!stats") {
         timed.stats();
       } else {
-        message.noUnderstandMentor(event.user);
+        Message.Mentors.noUnderstand(event.user);
       }
     } else {
-      // DM's
       const session = db.getSession(event.user);
       if (session != null) {
         if (isActive(session)) {
-          message.noUnderstand(session);
+          Message.Mentee.noUnderstand(session);
         } else {
-          message.noSession(session);
+          Message.Mentee.noSession(session);
         }
       } else {
-        message.welcome(session);
+        Message.Mentee.welcome(session);
       }
     }
   }

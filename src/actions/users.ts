@@ -1,10 +1,10 @@
-import config from "config";
+import Config from "config";
 
 import { webClient } from "clients";
 import * as db from "db";
 
 import { runnable } from "date";
-import { welcome } from "actions/message";
+import * as Message from "actions/message";
 
 import { Session, UserID, ChannelID } from "typings";
 
@@ -22,7 +22,7 @@ const tryWelcome = (
   canWelcome: boolean
 ) => {
   if (!session.welcomed && (canWelcome || mentorChannelIds.has(member.id))) {
-    welcome(
+    Message.Mentee.welcome(
       db.updateSession(member.id, {
         welcomed: true
       })
@@ -114,7 +114,7 @@ export const rescan = () => {
         }
       });
   };
-  Promise.all([getAll(), getMembers(config.CHANNEL_ID)]).then(
+  Promise.all([getAll(), getMembers(Config.MENTOR_CHANNEL)]).then(
     ([members, _mentorChannelIds]) => {
       const mentorChannelIds = new Set(_mentorChannelIds);
       updateMentors(members, mentorChannelIds);

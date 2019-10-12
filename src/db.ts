@@ -6,7 +6,6 @@ import {
   UserID,
   TS,
   Mentor,
-  Skills,
   isActive,
   isClaimed,
   ActiveSession
@@ -37,7 +36,7 @@ export const getSessionsToBump = () => {
         new Date(session.last_updated).getTime() <
           new Date().getTime() - 1000 * 60 * 10
     )
-    .value();
+    .value() as ActiveSession[];
   for (const session of sessions) {
     db.get("sessions")
       // @ts-ignore
@@ -48,10 +47,10 @@ export const getSessionsToBump = () => {
   return sessions;
 };
 
-export const updateSession = (
+export function updateSession<T extends Partial<Session>>(
   user: UserID,
-  newSession: Partial<Session>
-): Session => {
+  newSession: T
+): Session & T {
   const session = {
     ...(getSession(user) || {}),
     ...newSession,
@@ -66,7 +65,7 @@ export const updateSession = (
       // @ts-ignore
       .write()[user]
   );
-};
+}
 
 export const clearSession = (user: UserID) =>
   db
