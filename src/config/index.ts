@@ -10,7 +10,7 @@ export default {
   BOT_ACCESS_TOKEN: "xoxb-abcdefghijk-123456789-a1b2c3d4e5",
 
   // Mentor lead slack username
-  MENTOR_LEAD: `@bonnie`,
+  MENTOR_LEAD: `<@UABC123>`,
 
   // Signing secret of your app
   SIGNING_SECRET: "abcdefhijklmnopqrstuvwxyz",

@@ -161,7 +161,7 @@ export function deleteControls(session: ClaimedSession) {
 
 export function noUnderstand(channel: ChannelID) {
   const text = `Sorry, I don't understand your message. Try \`!skills help\` to see and set your skills`;
-  send({
+  return send({
     channel,
     ...buildSimpleBlock(text)
   });

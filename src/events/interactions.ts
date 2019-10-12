@@ -2,7 +2,7 @@ import SlackMessageAdapter from "@slack/interactive-messages/dist/adapter";
 
 import * as Message from "actions/message";
 import { webClient } from "clients";
-import { handle } from "utils";
+import { handle, swallow } from "utils";
 
 import {
   bumpCreated,
@@ -188,7 +188,10 @@ function completeRequest(payload: MessagePayload) {
 
 export const bootstrap = (interactions: SlackMessageAdapter) => {
   interactions.action({ actionId: "need_mentor" }, handle(needMentor));
-  interactions.action({ callbackId: "mentor_request" }, handle(mentorRequest));
+  interactions.action(
+    { callbackId: "mentor_request" },
+    swallow(handle(mentorRequest))
+  );
   interactions.action({ actionId: "cancel_request" }, handle(cancelRequest));
   interactions.action({ actionId: "claim_request" }, handle(claimRequest));
   interactions.action({ actionId: "delete_request" }, handle(deleteRequest));

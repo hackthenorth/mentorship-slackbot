@@ -1,6 +1,7 @@
-import config from "config";
-
+import Config from "config";
 import * as db from "db";
+import { handle as handleErrors } from "utils";
+
 import * as Message from "actions/message";
 import * as timed from "../actions/timed";
 import { UserID, isActive } from "typings";
@@ -24,7 +25,7 @@ const messageHandler = (event: Event) => {
     (event.message != null && event.message.bot_id != null) ||
     (event.previous_message != null && event.previous_message.bot_id != null)
   ) {
-    return;
+    return Promise.resolve(null);
   }
 
   // We only handle DM's
@@ -39,35 +40,37 @@ const messageHandler = (event: Event) => {
           .map(s => s.trim())
           .filter(s => s.length > 0);
         if (parts.length === 1 && parts[0] === "help") {
-          Message.Mentors.skillsHelp(event.user);
+          return Message.Mentors.skillsHelp(event.user);
         } else {
           const skillsObj = {};
           for (const part of parts) {
-            if (part in config.SKILLS) {
+            if (part in Config.SKILLS) {
               skillsObj[part] = true;
             }
           }
           db.setMentorSkills(event.user, skillsObj);
-          Message.Mentors.skillsSet(event.user, Object.keys(skillsObj));
+          return Message.Mentors.skillsSet(event.user, Object.keys(skillsObj));
         }
       } else if (text === "!stats") {
-        timed.stats();
+        return timed.stats();
       } else {
-        Message.Mentors.noUnderstand(event.user);
+        return Message.Mentors.noUnderstand(event.user);
       }
     } else {
       const session = db.getSession(event.user);
       if (session != null) {
         if (isActive(session)) {
-          Message.Mentee.noUnderstand(session);
+          return Message.Mentee.noUnderstand(session);
         } else {
-          Message.Mentee.noSession(session);
+          return Message.Mentee.noSession(session);
         }
       } else {
-        Message.Mentee.welcome(session);
+        return Message.Mentee.welcome(session);
       }
     }
+  } else {
+    return Promise.resolve(null);
   }
 };
 
-export const handle = messageHandler;
+export const handle = handleErrors(messageHandler);

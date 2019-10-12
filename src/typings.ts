@@ -48,8 +48,14 @@ export function isEmpty(session: Session): session is EmptySession {
 }
 
 export class SessionCoerceError extends Error {
-  constructor(type: string) {
-    super(`Failed to coerce session object to type '${type}'`);
+  constructor(session: Session, type: string) {
+    super(
+      `Failed to coerce session object to type '${type}'\n${JSON.stringify(
+        session,
+        null,
+        2
+      )}`
+    );
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }
@@ -60,19 +66,19 @@ export function coerceActive(
   if (isActive(session) && (allowClaimed || !isClaimed(session))) {
     return session;
   }
-  throw new SessionCoerceError("active");
+  throw new SessionCoerceError(session, "active");
 }
 export function coerceClaimed(session: Session): ClaimedSession {
   if (isClaimed(session)) {
     return session;
   }
-  throw new SessionCoerceError("claimed");
+  throw new SessionCoerceError(session, "claimed");
 }
 export function coerceEmpty(session: Session): EmptySession {
   if (isEmpty(session)) {
     return session;
   }
-  throw new SessionCoerceError("empty");
+  throw new SessionCoerceError(session, "empty");
 }
 
 export interface Mentor {

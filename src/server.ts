@@ -6,6 +6,8 @@ import request from "request";
 import config from "config";
 import { eventsClient, interactionsClient } from "clients";
 
+import { report } from "utils";
+
 import * as interactions from "events/interactions";
 import * as message from "events/message";
 
@@ -58,7 +60,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 eventsClient.on("message", event => message.handle(event));
-eventsClient.on("error", console.error);
+eventsClient.on("error", report);
 
 // Start a basic HTTP server
 http.createServer(app).listen(port, () => {

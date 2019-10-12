@@ -87,16 +87,7 @@ export function deleted({ channel }: ActiveSession) {
   const text = `Your mentorship request was deleted by a mentor - if you believe this was a mistake, please make a new request or contact our mentorship lead ${Config.MENTOR_LEAD}`;
   return send({
     channel,
-    text,
-    blocks: [
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text
-        }
-      }
-    ]
+    ...buildSimpleBlock(text)
   });
 }
 
