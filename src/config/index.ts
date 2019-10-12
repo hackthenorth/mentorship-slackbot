@@ -25,8 +25,10 @@ export default {
   SLACK_CLIENT_SECRET: "abcdefghijklmnopqrstuvwxyz",
 
   // Event start time (when the bot should welcome people and start posting stats)
+  // ISO 8601
   EVENT_START: "2019-09-13T21:00:00-0400",
   // Event end time (when the bot should stop)
+  // ISO 8601
   EVENT_END: "2019-09-15T12:00:00-0400",
 
   // List of available skills

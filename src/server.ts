@@ -38,7 +38,7 @@ app.get("/auth", function(req, res) {
       // Get an auth token
       res.json({
         success: true,
-        result: body
+        result: JSON.parse(body)
       });
     } else {
       res.json({

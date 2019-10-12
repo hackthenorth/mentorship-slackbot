@@ -23,9 +23,11 @@ Welcome Message | Request Popup
 7. Old, unclaimed requests are automatically bumped every 10 min if nobody has responded to it
 ![Bump](docs/bump.png)
 
-### Skills
+### Mentors
 1. Mentors can set their skills with the bot through the `!skills` command in DM
 ![Skills](docs/skills.png)
+2. The bot automatically rescans the slack users list every 15 minutes. To have someone be a mentor, simply add them to the private mentors channel. 
+3. All mentors have access to an additional `!stats` command to manually trigger a stats post.
 
 ### Errors
 The bot will automatically report any runtime errors to the private mentors channel (tagging the mentor lead in the process!). 
@@ -36,17 +38,53 @@ The bot will automatically report any runtime errors to the private mentors chan
 ### Data Store
 This app is written in TypeScript and uses a local `lowdb` json database to store sessions. This json database file is automatically generated at runtime as [src/storage/db.json](src/storage/db.json). 
 
+### Slack API
+This bot requires a custom slack app to work. In particular, it requires the following Slack API components:
+- Interactive Components
+    - Request url: 
+        - https://your-bot-url.com/slack/actions
+- Event Subscriptions
+    - Request url:
+        - https://your-bot-url.com/slack/events
+    - Bot events:
+        - app_mention
+        - im_created
+        - message.groups
+        - message.im
+    - Workspace events:
+        - team_join
+- Bots
+    - Set up the display name and default username as you wish
+- Permissions
+    - Redirect url:
+        - https://your-bot-url.com/auth
+    - Required scopes:
+        - chat:write:bot
+        - groups:write
+        - bot (Add Bot User)
+        - users:read
+
 ### Configuration
 Configuration parameters are stored in [src/config/index.ts](src/config/index.ts). A sample configuration file is provided in this repo.
 
+#### Access Token
+If you're installing the bot onto your Slack through "distribution", you can get the relevant bot access token by simply installing it through the "manage distribution" page of your Slack app.
+    1. Click the "Add to Slack" button ![Add to Slack](docs/add.png)
+    2. Click "Allow"
+    3. Find your bot access token! (starts with xoxb) ![Token](docs/token.png)
+
+##### Bot/App Permissions
+Remember to add your app to the channels your bot will post in, in particular the private mentors channel and the stats channel. ![About channel](docs/about_channel.png)
+
+#### Finding IDs
+You can find User IDs, Channel IDs, and Group IDs in the URL on Slack. 
+![Group ID](docs/url.png)
+
+### Deployment
+We use Kubernetes and [Skaffold](skaffold.dev). You will find the Kubernetes configuration file that we use in [kubernetes/deployment.yaml](kubernetes/deployment.yaml). Please feel free to use it as a template for your deployments.
 
 ## Technologies/Acknowledgements
 
 - [lowdb](https://github.com/typicode/lowdb) for local document storage
 - [TypeScript](http://www.typescriptlang.org/)
-- Deploy to Kubernetes
 - [Node Slack SDK](https://slack.dev/node-slack-sdk/)
-
-## Deployment
-**This bot is deployed manually with `skaffold run`. It will not autodeploy from master**
-When deploying make sure to manually delete the old deployment, otherwise the new one will forever wait for the volume claim
