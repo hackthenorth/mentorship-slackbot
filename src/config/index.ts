@@ -1,35 +1,37 @@
+const { MENTOR_LEAD, BOT_ACCESS_TOKEN, SIGNING_SECRET, SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, MENTOR_CHANNEL, STATS_CHANNEL } = process.env;
+
 export default {
   // Name of your event
-  EVENT_NAME: "Hack the North 2019",
+  EVENT_NAME: "VandyHacks VI",
   // Location of mentor hub
   MENTOR_HUB: "E7 CND",
 
   // Channel ID of your private "mentors" slack group
-  MENTOR_CHANNEL: "GMXXXXXX",
+  MENTOR_CHANNEL: MENTOR_CHANNEL as string,
   // Channel ID of where to post stats updates
-  STATS_CHANNEL: "CMXXXXXX",
+  STATS_CHANNEL: STATS_CHANNEL as string,
 
   // Username of your bot
   BOT_USERNAME: "mentorship_bot",
   // Access token for your bot (should start with xoxb)
-  BOT_ACCESS_TOKEN: "xoxb-abcdefghijk-123456789-a1b2c3d4e5",
+  BOT_ACCESS_TOKEN: BOT_ACCESS_TOKEN as string,
 
   // Mentor lead slack username
-  MENTOR_LEAD: `<@UABC123>`,
+  MENTOR_LEAD: MENTOR_LEAD as string,
 
   // Signing secret of your app
-  SIGNING_SECRET: "abcdefhijklmnopqrstuvwxyz",
+  SIGNING_SECRET: SIGNING_SECRET as string,
   // Client ID of your Slack App
-  SLACK_CLIENT_ID: "1234567890.1234567890",
+  SLACK_CLIENT_ID: SLACK_CLIENT_ID as string,
   // Client Secret of your Slack App
-  SLACK_CLIENT_SECRET: "abcdefghijklmnopqrstuvwxyz",
+  SLACK_CLIENT_SECRET: SLACK_CLIENT_ID as string,
 
   // Event start time (when the bot should welcome people and start posting stats)
   // ISO 8601
-  EVENT_START: "2019-09-13T21:00:00-0400",
+  EVENT_START: "2019-010-23T21:00:00-0400",
   // Event end time (when the bot should stop)
   // ISO 8601
-  EVENT_END: "2019-09-15T12:00:00-0400",
+  EVENT_END: "2019-11-05T12:00:00-0400",
 
   // List of available skills
   SKILLS: {
@@ -37,7 +39,6 @@ export default {
     frontend: "Frontend",
     android: "Android",
     ios: "iOS",
-    "react-native": "React Native",
     vr: "Virtual Reality",
     design: "Design",
     hardware: "Hardware"
