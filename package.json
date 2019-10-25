@@ -34,10 +34,14 @@
     "eslint-plugin-prettier": "^3.1.1",
     "express": "^4.17.1",
     "lowdb": "^1.0.0",
+    "mongodb": "^3.3.3",
     "prettier": "^1.18.2",
     "request": "^2.88.0",
     "ts-node": "^8.4.1",
     "tslib": "^1.10.0",
     "typescript": "^3.6.4"
+  },
+  "devDependencies": {
+    "@types/mongodb": "^3.3.6"
   }
 }
