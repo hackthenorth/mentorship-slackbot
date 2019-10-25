@@ -22,16 +22,18 @@ export default class Store {
   online: number
   created: number
   public constructor() {
+    // just stored in memory
     this.created = 0
     this.online = 0
   }
+  // connects once
   db = async () =>
     await new DB().collections
 
   public async getSession(user: UserID): Promise<Session> {
     const sessions = (await this.db()).SlackSessions
     // @ts-ignore
-    return sessions.find({ id: user })
+    return sessions.find({ id: user }).toArray()
   }
 
   public async getSessionsToBump() {
@@ -67,7 +69,8 @@ export default class Store {
       last_updated: new Date().toString()
     };
     const sessions = (await this.db()).SlackSessions
-    return sessions.updateOne({ id: user }, session)
+    const updated = sessions.updateOne({ id: user }, session)
+    return updated;
   }
 
   public async clearSession(user: UserID) {
@@ -82,23 +85,25 @@ export default class Store {
       .write();
   }
 
-  public async getUserIdByThreadTs(threadTs: TS): UserID | undefined {
+  public async getUserIdByThreadTs(threadTs: TS): Promise<UserID | undefined> {
     const sessions = (await this.db()).SlackSessions
-    return sessions
-      .findKey((session: ActiveSession) => session.ts === threadTs)
-      .value();
+    const users = await sessions.find({ ts: threadTs }).toArray()
+    return users.length > 0 ? users[0].id : undefined
   }
 
-  public async getMentors = () => db.get("mentors").value() || {};
+  public async getMentors = () => {
+    const mentors = (await this.db()).SlackMentors
+    return mentors.find({}).toArray();
+  }
 
   public async setMentors = (mentors: { [key: string]: Mentor }) =>
+    // uhhhh
     db.set("mentors", mentors).write();
 
-  public async getMentor = (user: UserID) =>
-    db.SlackMentors
-      // @ts-ignore
-      .get(user)
-      .value();
+  public async getMentor = (user: UserID): Promise<Mentor | null> => {
+    const mentors = (await this.db()).SlackMentors
+    return mentors.findOne({ id: user });
+  }
 
   public async setMentorSkills(
     user: UserID,
