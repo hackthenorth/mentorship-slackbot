@@ -1,4 +1,12 @@
-const { MENTOR_LEAD, BOT_ACCESS_TOKEN, SIGNING_SECRET, SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, MENTOR_CHANNEL, STATS_CHANNEL } = process.env;
+const {
+  MENTOR_LEAD,
+  BOT_ACCESS_TOKEN,
+  SIGNING_SECRET,
+  SLACK_CLIENT_ID,
+  SLACK_CLIENT_SECRET,
+  MENTOR_CHANNEL,
+  STATS_CHANNEL
+} = process.env;
 
 export default {
   // Name of your event
@@ -24,7 +32,7 @@ export default {
   // Client ID of your Slack App
   SLACK_CLIENT_ID: SLACK_CLIENT_ID as string,
   // Client Secret of your Slack App
-  SLACK_CLIENT_SECRET: SLACK_CLIENT_ID as string,
+  SLACK_CLIENT_SECRET: SLACK_CLIENT_SECRET as string,
 
   // Event start time (when the bot should welcome people and start posting stats)
   // ISO 8601
